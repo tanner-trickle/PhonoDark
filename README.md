@@ -185,6 +185,21 @@ Some papers which used a previous version of this program:
 
 # Citation
 
-If you use this program for your work please cite
+If you use this program for your work please cite this paper:
 
-TODO: add arXiv number and citation
+[Effective Field Theory of Dark Matter Direct Detection With Collective Excitations](https://arxiv.org/abs/2009.13534)
+
+with the citation:
+
+    @article{Trickle:2020oki,
+    author = "Trickle, Tanner and Zhang, Zhengkang and Zurek, Kathryn M.",
+    title = "{Effective Field Theory of Dark Matter Direct Detection With Collective Excitations}",
+    eprint = "2009.13534",
+    archivePrefix = "arXiv",
+    primaryClass = "hep-ph",
+    reportNumber = "CALT-TH-2020-037",
+    month = "9",
+    year = "2020"
+    }
+    
+Thanks!

@@ -123,7 +123,7 @@ def get_phonon_file_data(phonon_file, born_exists):
     A_list = phonon_file.primitive.get_masses()
     Z_list = phonon_file.primitive.get_atomic_numbers()
 
-    eq_positions_XYZ = phonon_file.primitive.get_positions()
+    eq_positions_XYZ = const.Ang_To_inveV*phonon_file.primitive.get_positions()
 
     atom_masses = const.AMU_To_eV*phonon_file.primitive.get_masses()
 

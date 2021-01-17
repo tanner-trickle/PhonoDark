@@ -28,6 +28,7 @@ import phonopy
 import os
 import sys
 import optparse
+import math
 
 import src.constants as const
 import src.parallel_util as put 
@@ -218,7 +219,7 @@ if options['m'] != '' and options['p'] != '' and options['n'] != '':
     [ph_eigenvectors_delta_E, ph_omega_delta_E] = phonopy_funcs.run_phonopy(phonon_file, 
                     [[0., 0., 0.]])
 
-    max_delta_E = 2*np.amax(ph_omega_delta_E)
+    max_delta_E = 4*np.amax(ph_omega_delta_E)
 
     max_bin_num = math.floor((
         max_delta_E - phys_mod.physics_parameters["threshold"]
@@ -228,6 +229,8 @@ if options['m'] != '' and options['p'] != '' and options['n'] != '':
 
     vE_vec = physics.create_vE_vec(time)
     delta = 2*phys_mod.physics_parameters['power_V'] - 2*phys_mod.physics_parameters['Fmed_power']
+
+    W_tensor_send = None
 
     if proc_id == root_process:
 
@@ -239,7 +242,7 @@ if options['m'] != '' and options['p'] != '' and options['n'] != '':
                                                 num_mod.numerics_parameters['n_DW_x'], 
                                                 num_mod.numerics_parameters['n_DW_y'], 
                                                 num_mod.numerics_parameters['n_DW_z'], 
-                                                recip_red_to_XYZ)
+                                                phonopy_params['recip_red_to_XYZ'])
 
 
         W_tensor_send = []
@@ -255,10 +258,12 @@ if options['m'] != '' and options['p'] != '' and options['n'] != '':
 
     num_jobs = 0
 
+    num_masses = len(phys_mod.dm_properties_dict['mass_list'])
+
     for m in range(num_masses):
 
         [q_XYZ_list, jacob_list] = mesh.create_q_mesh(
-                                        phys_mod.physics_parameters['mass_list'][m], 
+                                        phys_mod.dm_properties_dict['mass_list'][m], 
                                         phys_mod.physics_parameters['threshold'], 
                                         vE_vec, 
                                         num_mod.numerics_parameters,
@@ -266,8 +271,10 @@ if options['m'] != '' and options['p'] != '' and options['n'] != '':
                                         phonopy_params['atom_masses'],
                                         delta)
 
-        k_red_list = mesh.generate_k_red_mesh_from_q_XYZ_mesh(q_XYZ_list, recip_red_to_XYZ)
-        G_XYZ_list = mesh.get_G_XYZ_list_from_q_XYZ_list(q_XYZ_list, recip_red_to_XYZ)
+        k_red_list = mesh.generate_k_red_mesh_from_q_XYZ_mesh(q_XYZ_list, 
+                phonopy_params['recip_red_to_XYZ'])
+        G_XYZ_list = mesh.get_G_XYZ_list_from_q_XYZ_list(q_XYZ_list,
+                phonopy_params['recip_red_to_XYZ'])
         
         q_list_total.append({
                 'q_XYZ': q_XYZ_list,
@@ -302,11 +309,11 @@ if options['m'] != '' and options['p'] != '' and options['n'] != '':
     job_list_recv = comm.scatter(job_list, root=root_process)
 
     diff_rate_list = np.zeros((num_masses, max_bin_num))
-    binned_rate_list = np.zeros((num_masses, num_modes))
+    binned_rate_list = np.zeros((num_masses, phonopy_params['num_modes']))
     total_rate_list = np.zeros(num_masses)
 
     diff_rate = np.zeros((num_masses, max_bin_num))
-    binned_rate = np.zeros((num_masses, num_modes))
+    binned_rate = np.zeros((num_masses, phonopy_params['num_modes']))
     total_rate = np.zeros(num_masses)
 
     if proc_id == root_process:
@@ -321,7 +328,8 @@ if options['m'] != '' and options['p'] != '' and options['n'] != '':
 
             job_id = job_list_recv[job]
 
-            mass = phys_mod.dm_properties_dict['mass_list'][int(job_id[0])]
+            mass_index = int(job_id[0])
+            mass = phys_mod.dm_properties_dict['mass_list'][mass_index]
             q_index = int(job_id[1])
 
             if first_job and proc_id == root_process:
@@ -370,9 +378,9 @@ if options['m'] != '' and options['p'] != '' and options['n'] != '':
                                                     phys_mod.c_dict_form, phonon_file, 
                                                     max_bin_num, q_index)
 
-            diff_rate_list[mass_index] += diff_rate
-            binned_rate_list[mass_index] += binned_rate
-            total_rate_list[mass_index] += total_rate
+            diff_rate_list[mass_index] += np.real(diff_rate)
+            binned_rate_list[mass_index] += np.real(binned_rate)
+            total_rate_list[mass_index] += np.real(total_rate)
 
     if proc_id == root_process:
         print('Done computing rate. Returning all data to root node to write.\n\n------\n')

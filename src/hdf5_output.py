@@ -137,7 +137,7 @@ def hdf5_write_output_q(out_file, numerics_parameters, physics_parameters, dm_pr
     for i in range(len(all_total_rate_list)):
         for j in range(len(all_total_rate_list[i])):
 
-            mass_index = int(all_total_rate_list[i][j][0][0])
+            mass_index = j  
             str_time_index = '0'
 
             mass = dm_properties_dict['mass_list'][mass_index]
@@ -156,7 +156,7 @@ def hdf5_write_output_q(out_file, numerics_parameters, physics_parameters, dm_pr
             
             if mass_index not in total_diff_rate_dict[str_time_index]:
                 total_diff_rate_dict[str_time_index][mass_index] = \
-                        np.zeros(len(all_diff_rate_list[i][j][1]))
+                        np.zeros(len(all_diff_rate_list[i][0]))
             
             ###
 
@@ -165,16 +165,16 @@ def hdf5_write_output_q(out_file, numerics_parameters, physics_parameters, dm_pr
 
             if mass_index not in total_binned_rate_dict[str_time_index]:
                 total_binned_rate_dict[str_time_index][mass_index] = \
-                        np.zeros(len(all_binned_rate_list[i][j][1]))
+                        np.zeros(len(all_binned_rate_list[i][0]))
             
             total_rate_dict[str_time_index][mass_index] += \
-                    all_total_rate_list[i][j][1]
+                    all_total_rate_list[i][j]
             
             total_diff_rate_dict[str_time_index][mass_index] += \
-                    all_diff_rate_list[i][j][1]
+                    all_diff_rate_list[i][j]
             
             total_binned_rate_dict[str_time_index][mass_index] += \
-                    all_binned_rate_list[i][j][1]
+                    all_binned_rate_list[i][j]
             
     hdf5_write_dict(out_f, 'data/rate', total_rate_dict)
     hdf5_write_dict(out_f, 'data/binned_rate', total_binned_rate_dict)

@@ -315,7 +315,7 @@ def calc_diff_rates_general_q(mass, q_XYZ_list, G_XYZ_list, jacob_list, physics_
                     
                     dw_val_j = np.dot(q_vec, np.matmul(W_tensor[j], q_vec))
                     
-                    pos_phase_j = (1j)*np.dot(G_XYZ_list[q], phonopy_params['eq_positions_XYZ'][j])
+                    pos_phase_j = (1j)*np.dot(G_XYZ_list[q_index], phonopy_params['eq_positions_XYZ'][j])
 
                     q_dot_e_star_j = np.dot(q_vec, np.conj(ph_eigenvectors[0][nu][j]))
                     V00_j = total_V_func_eval["00"][j]
@@ -326,7 +326,7 @@ def calc_diff_rates_general_q(mass, q_XYZ_list, G_XYZ_list, jacob_list, physics_
                     for jp in range(phonopy_params['num_atoms']):
 
                         dw_val_jp = np.dot(q_vec, np.matmul(W_tensor[jp], q_vec))
-                        pos_phase_jp = (1j)*np.dot(G_XYZ_list[q], phonopy_params['eq_positions_XYZ'][jp])
+                        pos_phase_jp = (1j)*np.dot(G_XYZ_list[q_index], phonopy_params['eq_positions_XYZ'][jp])
 
                         q_dot_e_jp = np.dot(q_vec, ph_eigenvectors[0][nu][jp])
 
@@ -365,7 +365,7 @@ def calc_diff_rates_general_q(mass, q_XYZ_list, G_XYZ_list, jacob_list, physics_
 
                         delta_rate = (
                             0.5*(const.RHO_DM/mass)\
-                            *(1.0/m_cell)*(2*const.PI)**(-3)*jacob_list[q]\
+                            *(1.0/m_cell)*(2*const.PI)**(-3)*jacob_list[q_index]\
                             *(1.0/(n_a*n_b*n_c))*(1.0/energy_diff)\
                             *(phonopy_params['atom_masses'][j]*phonopy_params['atom_masses'][jp])**(-0.5)\
                             *np.exp(exp_val)\

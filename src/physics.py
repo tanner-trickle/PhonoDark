@@ -253,3 +253,130 @@ def calc_diff_rates_general(mass, q_XYZ_list, G_XYZ_list, jacob_list, physics_pa
 
     return [diff_rate, binned_rate, total_rate]
 
+def calc_diff_rates_general_q(mass, q_XYZ_list, G_XYZ_list, jacob_list, physics_parameters,
+                    vE_vec, numerics_parameters, phonopy_params,ph_omega, ph_eigenvectors,
+                    W_tensor, c_dict, mat_properties_dict, dm_properties_dict, 
+                    c_dict_form, phonon_file, max_bin_num, q_index):
+    """
+        Computes the differential rate
+    """
+
+    n_a = numerics_parameters['n_a']
+    n_b = numerics_parameters['n_b']
+    n_c = numerics_parameters['n_c']
+    energy_bin_width = numerics_parameters['energy_bin_width']
+    
+    Fmed_power    = physics_parameters['Fmed_power']
+    threshold     = physics_parameters['threshold']
+
+    m_cell = sum(phonopy_params['atom_masses'])
+
+    spin = dm_properties_dict["spin"]
+
+    q_vec = q_XYZ_list[q_index]
+    q_mag = np.linalg.norm(q_vec)
+
+    diff_rate = np.zeros(max_bin_num, dtype=complex)
+    binned_rate = np.zeros(phonopy_params['num_modes'], dtype=complex)
+    
+    # F_prop_val holds propagator dependence of rate
+    F_prop_val = (1.0/q_mag)**Fmed_power
+    
+    c_dict_full = c_dict_form_full(q_vec, phonopy_params['dielectric'], c_dict, c_dict_form, 
+            mass, spin)
+
+    non_zero_indices = potential_operators.get_non_zero_c_indicies(c_dict_full)
+    
+    total_V_func_eval = potential_operators.total_V_func(non_zero_indices, 
+                            q_vec, phonopy_params['num_atoms'], mat_properties_dict, 
+                            mass, spin, c_dict_full)  
+
+    for nu in range(phonopy_params['num_modes']):
+
+        energy_diff = ph_omega[0][nu]
+       
+        if energy_diff >= threshold:
+        # g function value
+            v_star_val = vel_g_function_integrals.v_star_func(q_vec, energy_diff, mass, vE_vec)
+            v_minus_val = np.abs(v_star_val)
+
+            g0_val = vel_g_function_integrals.g0_func_opt(q_vec, energy_diff, mass, 
+                                        vE_vec, v_minus_val)
+            g1_vec = vel_g_function_integrals.g1_func_opt(q_vec, energy_diff, mass, vE_vec,
+                                        g0_val, v_star_val)
+            g2_tens = vel_g_function_integrals.g2_func_opt(q_vec, energy_diff, mass, vE_vec,
+                                        v_minus_val, g0_val, g1_vec)
+ 
+            bin_num = math.floor((energy_diff-threshold)/energy_bin_width)
+            
+            if v_minus_val < const.VESC:
+
+                for j in range(phonopy_params['num_atoms']):
+                    
+                    dw_val_j = np.dot(q_vec, np.matmul(W_tensor[j], q_vec))
+                    
+                    pos_phase_j = (1j)*np.dot(G_XYZ_list[q_index], phonopy_params['eq_positions_XYZ'][j])
+
+                    q_dot_e_star_j = np.dot(q_vec, np.conj(ph_eigenvectors[0][nu][j]))
+                    V00_j = total_V_func_eval["00"][j]
+                    V01_j = total_V_func_eval["01"][j]
+                    V10_j = total_V_func_eval["10"][j]
+                    V11_j = total_V_func_eval["11"][j]
+                    
+                    for jp in range(phonopy_params['num_atoms']):
+
+                        dw_val_jp = np.dot(q_vec, np.matmul(W_tensor[jp], q_vec))
+                        pos_phase_jp = (1j)*np.dot(G_XYZ_list[q_index], phonopy_params['eq_positions_XYZ'][jp])
+
+                        q_dot_e_jp = np.dot(q_vec, ph_eigenvectors[0][nu][jp])
+
+                        V00_jp = total_V_func_eval["00"][jp]
+                        V01_jp = total_V_func_eval["01"][jp]
+                        V10_jp = total_V_func_eval["10"][jp]
+                        V11_jp = total_V_func_eval["11"][jp]
+
+                        g0_rate = g0_val*(
+                            V00_j*np.conj(V00_jp)
+                            + ((spin*(spin+1))/3.0)*(
+                                    np.dot(V01_j, np.conj(V01_jp))
+                                )
+                            )
+
+                        g1_rate = np.dot(g1_vec, 
+                                (
+                                    V00_j*np.conj(V10_jp) + np.conj(V00_jp)*V10_j
+                                    + ((spin*(spin+1))/3.0)*(
+                                         np.matmul(np.conj(V11_jp), V01_j) + 
+                                         np.matmul(V11_j, np.conj(V01_jp))
+                                        )
+                                )
+                            )
+
+                        g2_rate = (
+                            np.dot(V10_j, np.matmul(g2_tens, np.conj(V10_jp)))
+                            + ((spin*(spin+1))/3.0)*np.trace(
+                                    np.matmul(
+                                            V11_j.T, np.matmul(g2_tens, np.conj(V11_jp))
+                                        )
+                                )
+                            )
+                       
+                        exp_val = - dw_val_j - dw_val_jp + pos_phase_j - pos_phase_jp
+
+                        delta_rate = (
+                            0.5*(const.RHO_DM/mass)\
+                            *(1.0/m_cell)*(2*const.PI)**(-3)*jacob_list[q_index]\
+                            *(1.0/(n_a*n_b*n_c))*(1.0/energy_diff)\
+                            *(phonopy_params['atom_masses'][j]*phonopy_params['atom_masses'][jp])**(-0.5)\
+                            *np.exp(exp_val)\
+                            *q_dot_e_star_j*q_dot_e_jp\
+                            *F_prop_val**2\
+                            *(g0_rate + g1_rate + g2_rate)
+                            )
+
+                        binned_rate[nu] += delta_rate
+                        diff_rate[bin_num] += delta_rate
+
+    total_rate = sum(diff_rate)
+
+    return [diff_rate, binned_rate, total_rate]

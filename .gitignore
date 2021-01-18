@@ -1,4 +1,7 @@
 # Byte-compiled / optimized / DLL files
+
+inputs/material/GaAs/*
+
 __pycache__/
 *.py[cod]
 *$py.class

@@ -360,8 +360,44 @@ if options['m'] != '' and options['p'] != '' and options['n'] != '':
             [ph_eigenvectors, ph_omega] = phonopy_funcs.run_phonopy(phonon_file, 
                     [q_list_total_recv[mass_index]['k_red'][q_index]])
 
+            if 'special_model' in phys_mod.physics_parameters.keys():
+
+                if first_job and proc_id == root_process:
+                    print('Computing the scattering rate for a specific model...')
+                    print()
+                    print('    Model : '+phys_mod.physics_parameters['special_model'])
+                    print()
+
+                if phys_mod.physics_parameters['special_model'] == 'dark_photon':
+
+                    [diff_rate, binned_rate, total_rate] = physics.calc_diff_rates_dark_photon_q(
+                                                    mass, 
+                                                    q_list_total_recv[mass_index]['q_XYZ'], 
+                                                    q_list_total_recv[mass_index]['G_XYZ'],
+                                                    q_list_total_recv[mass_index]['jacob'],
+                                                    phys_mod.physics_parameters,
+                                                    vE_vec, 
+                                                    num_mod.numerics_parameters, 
+                                                    phonopy_params,
+                                                    ph_omega, 
+                                                    ph_eigenvectors,
+                                                    W_tensor, 
+                                                    mat_mod.mat_properties_dict, 
+                                                    phys_mod.dm_properties_dict, 
+                                                    phonon_file, max_bin_num, q_index)
+
+                else:
+
+                    if first_job and proc_id == root_process:
+                        print('    This specific model does not have a unique implementation.')
+                        print('    Try using the more general calculation by specifying the ')
+                        print('    coefficients of the operators you want to include.')
+                        print()
+
+            else:
+
             # compute the differential, binned and total rates
-            [diff_rate, binned_rate, total_rate] = physics.calc_diff_rates_general_q(mass, 
+                [diff_rate, binned_rate, total_rate] = physics.calc_diff_rates_general_q(mass, 
                                                     q_list_total_recv[mass_index]['q_XYZ'], 
                                                     q_list_total_recv[mass_index]['G_XYZ'], 
                                                     q_list_total_recv[mass_index]['jacob'], 

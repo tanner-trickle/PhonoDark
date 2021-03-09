@@ -36,7 +36,7 @@ import src.hdf5_output as hdf5_output
 
 #####
 
-version = "1.1"
+version = "1.1.0"
 
 # initializing MPI
 comm = MPI.COMM_WORLD

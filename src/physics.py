@@ -345,6 +345,86 @@ def calc_diff_rates_dark_photon(mass, q_XYZ_list, G_XYZ_list, jacob_list, physic
 
     return [diff_rate, binned_rate, total_rate]
 
+def calc_diff_rates_dark_photon_q(mass, q_XYZ_list, G_XYZ_list, jacob_list, physics_parameters,
+                    vE_vec, numerics_parameters, phonopy_params,ph_omega, ph_eigenvectors,
+                    W_tensor, mat_properties_dict, dm_properties_dict, 
+                    phonon_file, max_bin_num, q_index):
+    """
+        Computes the differential rate for a specific q point for the dark photon model.
+    """
+
+    n_a = numerics_parameters['n_a']
+    n_b = numerics_parameters['n_b']
+    n_c = numerics_parameters['n_c']
+    energy_bin_width = numerics_parameters['energy_bin_width']
+    
+    Fmed_power    = physics_parameters['Fmed_power']
+    threshold     = physics_parameters['threshold']
+
+    m_cell = sum(phonopy_params['atom_masses'])
+
+    q_vec = q_XYZ_list[q_index]
+    q_mag = np.linalg.norm(q_vec)
+
+    q_hat = q_vec/q_mag
+
+    diff_rate = np.zeros(max_bin_num, dtype=complex)
+    binned_rate = np.zeros(phonopy_params['num_modes'], dtype=complex)
+    
+    # F_prop_val holds propagator dependence of rate
+    F_prop_val = (1.0/q_mag)**Fmed_power
+
+    for nu in range(phonopy_params['num_modes']):
+
+        energy_diff = ph_omega[0][nu]
+       
+        if energy_diff >= threshold:
+        # g function value
+            v_star_val = vel_g_function_integrals.v_star_func(q_vec, energy_diff, mass, vE_vec)
+            v_minus_val = np.abs(v_star_val)
+
+            g0_val = vel_g_function_integrals.g0_func_opt(q_vec, energy_diff, mass, 
+                                        vE_vec, v_minus_val)
+ 
+            bin_num = math.floor((energy_diff-threshold)/energy_bin_width)
+            
+            if v_minus_val < const.VESC:
+
+                S_nu = 0.0
+
+                for j in range(phonopy_params['num_atoms']):
+
+                    Y_j = np.matmul(phonopy_params['born'][j], q_vec)
+
+                    Y_dot_e_star = (
+                            np.dot(Y_j, np.conj(ph_eigenvectors[0][nu][j]))/
+                            np.dot(q_hat, 
+                                np.matmul(phonopy_params['dielectric'], q_hat))
+                            )
+                    
+                    dw_val_j = np.dot(q_vec, np.matmul(W_tensor[j], q_vec))
+                    
+                    pos_phase_j = (1j)*np.dot(G_XYZ_list[q_index], phonopy_params['eq_positions_XYZ'][j])
+
+                    S_nu += (phonopy_params['atom_masses'][j])**(-0.5)*\
+                            np.exp(-dw_val_j + pos_phase_j)*Y_dot_e_star
+
+                delta_rate = (
+                    0.5*(const.RHO_DM/mass)\
+                    *(1.0/m_cell)*(2*const.PI)**(-3)*jacob_list[q_index]\
+                    *(1.0/(n_a*n_b*n_c))*(1.0/energy_diff)\
+                    *S_nu*np.conj(S_nu)\
+                    *F_prop_val**2\
+                    *g0_val
+                    )
+
+                binned_rate[nu] += delta_rate
+                diff_rate[bin_num] += delta_rate
+
+    total_rate = sum(diff_rate)
+
+    return [diff_rate, binned_rate, total_rate]
+
 def calc_diff_rates_general_q(mass, q_XYZ_list, G_XYZ_list, jacob_list, physics_parameters,
                     vE_vec, numerics_parameters, phonopy_params,ph_omega, ph_eigenvectors,
                     W_tensor, c_dict, mat_properties_dict, dm_properties_dict, 

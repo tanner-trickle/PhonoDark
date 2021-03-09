@@ -1,6 +1,6 @@
 io_parameters = {
         'output_folder'       : 'data/',
-        'output_filename_extra' : ''
+        'output_filename_extra' : 'uniform_20x20x20'
 }
 
 numerics_parameters = {

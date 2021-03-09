@@ -12,7 +12,7 @@ import src.constants as const
 include_screen = False
 
 # Create the list of masses to compute for
-# input_masses = [10**6, 10**7, 10**8, 10**9, 10**10]
+input_masses = []
 
 log_start_mass = 3
 log_end_mass = 10

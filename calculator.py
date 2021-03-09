@@ -270,13 +270,24 @@ if options['m'] != '' and options['p'] != '' and options['n'] != '':
 
             delta = 2*phys_mod.physics_parameters['power_V'] - 2*phys_mod.physics_parameters['Fmed_power']
 
-            [q_XYZ_list, jacob_list] = mesh.create_q_mesh(mass, 
+            # [q_XYZ_list, jacob_list] = mesh.create_q_mesh(mass, 
+            #                                phys_mod.physics_parameters['threshold'], 
+            #                                vE_vec, 
+            #                                num_mod.numerics_parameters,
+            #                                phonon_file,
+            #                                phonopy_params['atom_masses'],
+            #                                delta)
+
+            [q_XYZ_list, jacob_list] = mesh.create_q_mesh_uniform(mass, 
                                            phys_mod.physics_parameters['threshold'], 
                                            vE_vec, 
                                            num_mod.numerics_parameters,
                                            phonon_file,
                                            phonopy_params['atom_masses'],
-                                           delta)
+                                           delta, 
+                                           q_red_to_XYZ = phonopy_params['recip_red_to_XYZ'],
+                                           mesh = [20, 20, 20]
+                                           )
 
             k_red_list = mesh.generate_k_red_mesh_from_q_XYZ_mesh(q_XYZ_list, phonopy_params['recip_red_to_XYZ'])
             G_XYZ_list = mesh.get_G_XYZ_list_from_q_XYZ_list(q_XYZ_list, phonopy_params['recip_red_to_XYZ'])

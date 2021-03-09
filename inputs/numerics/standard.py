@@ -1,15 +1,15 @@
 io_parameters = {
         'output_folder'       : 'data/',
-        'output_filename_extra' : 'uniform_20x20x20'
+        'output_filename_extra' : 'dp_testing'
 }
 
 numerics_parameters = {
         # number of grid points in radial direction
         'n_a'             : 50,
         # number of grid points in theta direction
-        'n_b'             : 10,
+        'n_b'             : 25,
         # number of grid points in phi direction
-        'n_c'             : 10,
+        'n_c'             : 25,
         # sampling parameter in radial direction
         'power_a'         : 2,
         # sampling parameter in theta direction

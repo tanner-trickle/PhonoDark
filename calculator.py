@@ -36,7 +36,7 @@ import src.hdf5_output as hdf5_output
 
 #####
 
-version = "1.0"
+version = "1.1"
 
 # initializing MPI
 comm = MPI.COMM_WORLD
@@ -270,24 +270,26 @@ if options['m'] != '' and options['p'] != '' and options['n'] != '':
 
             delta = 2*phys_mod.physics_parameters['power_V'] - 2*phys_mod.physics_parameters['Fmed_power']
 
-            # [q_XYZ_list, jacob_list] = mesh.create_q_mesh(mass, 
-            #                                phys_mod.physics_parameters['threshold'], 
-            #                                vE_vec, 
-            #                                num_mod.numerics_parameters,
-            #                                phonon_file,
-            #                                phonopy_params['atom_masses'],
-            #                                delta)
-
-            [q_XYZ_list, jacob_list] = mesh.create_q_mesh_uniform(mass, 
+            [q_XYZ_list, jacob_list] = mesh.create_q_mesh(mass, 
                                            phys_mod.physics_parameters['threshold'], 
                                            vE_vec, 
                                            num_mod.numerics_parameters,
                                            phonon_file,
                                            phonopy_params['atom_masses'],
-                                           delta, 
-                                           q_red_to_XYZ = phonopy_params['recip_red_to_XYZ'],
-                                           mesh = [20, 20, 20]
-                                           )
+                                           delta)
+
+            # Beta testing a uniform q mesh for different calculations...
+
+            # [q_XYZ_list, jacob_list] = mesh.create_q_mesh_uniform(mass, 
+            #                                phys_mod.physics_parameters['threshold'], 
+            #                                vE_vec, 
+            #                                num_mod.numerics_parameters,
+            #                                phonon_file,
+            #                                phonopy_params['atom_masses'],
+            #                                delta, 
+            #                                q_red_to_XYZ = phonopy_params['recip_red_to_XYZ'],
+            #                                mesh = [20, 20, 20]
+            #                                )
 
             k_red_list = mesh.generate_k_red_mesh_from_q_XYZ_mesh(q_XYZ_list, phonopy_params['recip_red_to_XYZ'])
             G_XYZ_list = mesh.get_G_XYZ_list_from_q_XYZ_list(q_XYZ_list, phonopy_params['recip_red_to_XYZ'])
@@ -305,7 +307,46 @@ if options['m'] != '' and options['p'] != '' and options['n'] != '':
                                                        phonopy_params['recip_red_to_XYZ'])
 
             # compute the differential, binned and total rates
-            [diff_rate, binned_rate, total_rate] = physics.calc_diff_rates_general(mass, 
+
+            if 'special_model' in phys_mod.physics_parameters.keys():
+
+                if first_job and proc_id == root_process:
+                    print('Computing the scattering rate for a specific model...')
+                    print()
+                    print('    Model : '+phys_mod.physics_parameters['special_model'])
+                    print()
+
+                if phys_mod.physics_parameters['special_model'] == 'dark_photon':
+
+                    [diff_rate, binned_rate, total_rate] = physics.calc_diff_rates_dark_photon(
+                                                    mass, 
+                                                    q_XYZ_list, 
+                                                    G_XYZ_list, 
+                                                    jacob_list, 
+                                                    phys_mod.physics_parameters,
+                                                    vE_vec, 
+                                                    num_mod.numerics_parameters, 
+                                                    phonopy_params,
+                                                    ph_omega, 
+                                                    ph_eigenvectors,
+                                                    W_tensor, 
+                                                    mat_mod.mat_properties_dict, 
+                                                    phys_mod.dm_properties_dict, 
+                                                    phonon_file)
+
+
+
+                else:
+
+                    if first_job and proc_id == root_process:
+                        print('    This specific model does not have a unique implementation.')
+                        print('    Try using the more general calculation by specifying the ')
+                        print('    coefficients of the operators you want to include.')
+                        print()
+
+            else:
+
+                [diff_rate, binned_rate, total_rate] = physics.calc_diff_rates_general(mass, 
                                                     q_XYZ_list, 
                                                     G_XYZ_list, 
                                                     jacob_list, 

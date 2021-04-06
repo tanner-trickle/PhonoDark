@@ -175,26 +175,14 @@ if options['m'] != '' and options['p'] != '' and options['n'] != '':
 
     # load phonon file
     poscar_path = os.path.join(
-            os.path.join(
-                os.path.join(
-                    os.path.join(cwd, 'inputs'), 
-                    'material'), 
-                material), 
-            'POSCAR')
+            os.path.split(material_input)[0], 'POSCAR'
+            )
     force_sets_path = os.path.join(
-            os.path.join(
-                os.path.join(
-                    os.path.join(cwd, 'inputs'), 
-                    'material'), 
-                material), 
-            'FORCE_SETS')
+            os.path.split(material_input)[0], 'FORCE_SETS'
+            )
     born_path = os.path.join(
-            os.path.join(
-                os.path.join(
-                    os.path.join(cwd, 'inputs'), 
-                    'material'), 
-                material), 
-            'BORN')
+            os.path.split(material_input)[0], 'BORN'
+            )
 
     # check if the born file exists
     if os.path.exists(born_path):

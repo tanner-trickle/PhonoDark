@@ -47,7 +47,8 @@ physics_parameters = {
         # power of q in the potential, used to find optimal integration mesh
         'power_V'   : 0.,
         # flag to compute for a specific model
-        'special_model': 'dark_photon',
+        # SI computes using the algorithm presented in 1910.08092
+        'special_model': 'SI',
 }
 
 dm_properties_dict = {

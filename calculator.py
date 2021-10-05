@@ -304,9 +304,9 @@ if options['m'] != '' and options['p'] != '' and options['n'] != '':
                     print('    Model : '+phys_mod.physics_parameters['special_model'])
                     print()
 
-                if phys_mod.physics_parameters['special_model'] == 'dark_photon':
+                if phys_mod.physics_parameters['special_model'] == 'SI':
 
-                    [diff_rate, binned_rate, total_rate] = physics.calc_diff_rates_dark_photon(
+                    [diff_rate, binned_rate, total_rate] = physics.calc_diff_rates_SI(
                                                     mass, 
                                                     q_XYZ_list, 
                                                     G_XYZ_list, 
@@ -320,7 +320,7 @@ if options['m'] != '' and options['p'] != '' and options['n'] != '':
                                                     W_tensor, 
                                                     mat_mod.mat_properties_dict, 
                                                     phys_mod.dm_properties_dict, 
-                                                    phonon_file)
+                                                    phonon_file, c_dict)
 
 
 

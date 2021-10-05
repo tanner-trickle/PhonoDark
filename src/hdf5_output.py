@@ -46,7 +46,6 @@ def hdf5_write_output(out_file, numerics_parameters, physics_parameters, dm_prop
         out_f.create_dataset('particle_physics/'+str(index), data=physics_parameters[index])
 
     # version number
-
     out_f.create_dataset('version', data="1.1.0")
 
     hdf5_write_dict(out_f, 'particle_physics/dm_properties', dm_properties_dict)
@@ -123,6 +122,9 @@ def hdf5_write_output_q(out_file, numerics_parameters, physics_parameters, dm_pr
     out_f.create_group('data/rate')
     out_f.create_group('data/diff_rate')
     out_f.create_group('data/binned_rate')
+
+    # version number
+    out_f.create_dataset('version', data="1.1.0")
 
     # numerics parameters
     for index in numerics_parameters:

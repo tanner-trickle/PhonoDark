@@ -166,7 +166,3 @@ def get_phonon_file_data(phonon_file, born_exists):
             'Z_list': Z_list,
             'born': born,
             'dielectric': dielectric}
-
-
-
-	

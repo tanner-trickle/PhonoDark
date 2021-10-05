@@ -113,6 +113,49 @@ def compute_q_cut(phonon_file, atom_masses):
 
     return q_cut
 
+def create_q_mesh_uniform(mass, threshold, vE_vec, numerics_parameters, phonon_file, atom_masses, 
+        delta, mesh=[9,9,9], 
+        num_Gpoints=1, 
+        q_shift=[0, 0, 0], 
+        stride=1, 
+        stride_G=1, 
+        max_q=None, 
+        q_red_to_XYZ=np.eye(3)):
+
+    qpoints = np.zeros([0, 3])
+    count = 0
+    curr_qx = q_shift[0] / mesh[0]
+    curr_qy = q_shift[1] / mesh[1]
+    curr_qz = q_shift[2] / mesh[2]
+
+    spacing = float(stride) / np.array(mesh)
+
+    for gz in range(0, num_Gpoints, stride_G):
+        for gy in range(0, num_Gpoints, stride_G):
+            for gx in range(0, num_Gpoints, stride_G):
+                for z in range(0, mesh[2], stride):
+                    for y in range(0, mesh[1], stride):
+                        for x in range(0, mesh[0], stride):
+                            if max_q is not None:
+                                if np.abs(curr_qx) <= max_q and np.abs(curr_qy) <= max_q and np.abs(curr_qz) <= max_q:
+                                    qpoints = np.append(qpoints, [[curr_qx + gx, curr_qy + gy, curr_qz + gz]],axis=0)
+                            else:
+                                qpoints = np.append(qpoints, [[curr_qx + gx, curr_qy + gy, curr_qz + gz]], axis=0)
+                            count += 1
+                            curr_qx += spacing[0]
+                            if curr_qx > 0.5:
+                                curr_qx -= 1.0
+                        curr_qy += spacing[1]
+                        if curr_qy > 0.5:
+                            curr_qy -= 1.0
+                    curr_qz += spacing[2]
+                    if curr_qz > 0.5:
+                        curr_qz -= 1.0
+
+    qpoints = np.dot(q_red_to_XYZ, qpoints.T).T
+
+    return [ qpoints, np.ones(len(qpoints)) ]
+
 def create_q_mesh(mass, threshold, vE_vec, numerics_parameters, phonon_file, atom_masses,
                     delta):
     """

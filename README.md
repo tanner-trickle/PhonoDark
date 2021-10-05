@@ -1,5 +1,7 @@
 # Dark Matter - Phonon Scattering Rate Calculator
 
+**version: 1.0.0**
+
 Computes dark matter (DM)-phonon scattering rate for a general scattering potential and target. 
 
 The user can specify:

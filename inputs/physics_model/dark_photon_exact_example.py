@@ -12,23 +12,25 @@ import src.constants as const
 include_screen = True
 
 # Create the list of masses to compute for
-input_masses = [10**6, 10**7, 10**8, 10**9, 10**10]
+# input_masses = [10**6, 10**7, 10**8, 10**9, 10**10]
 
-# log_start_mass = 3
-# log_end_mass = 7
+input_masses = []
 
-# n_masses = 40
+log_start_mass = 3
+log_end_mass = 7
 
-# for i in range(n_masses):
-#     log_m = log_start_mass + (log_end_mass - log_start_mass)*(i/(n_masses - 1))
-#     input_masses.append(10**log_m)
+n_masses = 40
 
-# # Include all even multiples of 10 are computed for
-# for i in range(log_end_mass - log_start_mass + 1):
-#     input_masses.append(10**(i + log_start_mass))
+for i in range(n_masses):
+    log_m = log_start_mass + (log_end_mass - log_start_mass)*(i/(n_masses - 1))
+    input_masses.append(10**log_m)
 
-# input_masses = list(dict.fromkeys(input_masses))
-# input_masses.sort()
+# Include all even multiples of 10 are computed for
+for i in range(log_end_mass - log_start_mass + 1):
+    input_masses.append(10**(i + log_start_mass))
+
+input_masses = list(dict.fromkeys(input_masses))
+input_masses.sort()
 
 ##################
 
@@ -44,6 +46,8 @@ physics_parameters = {
         'Fmed_power': 2.,
         # power of q in the potential, used to find optimal integration mesh
         'power_V'   : 0.,
+        # flag to compute for a specific model
+        'special_model': 'dark_photon',
 }
 
 dm_properties_dict = {

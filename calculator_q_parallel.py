@@ -1,6 +1,8 @@
 """
     Compute the DM - phonon scattering rate for a general effective operator.
 
+    Parallelizes over points in the momentum space integration
+
     Necessary input files:
         - DFT input files:
             - POSCAR - equilibrium positions of atoms
@@ -26,6 +28,7 @@ import phonopy
 import os
 import sys
 import optparse
+import math
 
 import src.constants as const
 import src.parallel_util as put 
@@ -141,37 +144,24 @@ if options['m'] != '' and options['p'] != '' and options['n'] != '':
     if proc_id == root_process:
 
         print('Configuring calculation ...\n')
-        
-        # number of jobs to do
-        num_masses    = len(phys_mod.dm_properties_dict['mass_list'])
-        num_times     = len(phys_mod.physics_parameters['times'])
 
-        num_jobs = num_masses*num_times
-        print('  Total number of jobs : '+str(num_jobs))
-        print()
 
-        total_job_list = []
+    num_times     = len(phys_mod.physics_parameters['times'])
+    if num_times > 1:
 
-        for m in range(num_masses):
-            for t in range(num_times):
+        print('--- ERROR ---\n')
+        print('    This calculation must be run for a single time point.')
+        print('\n----------')
 
-                total_job_list.append([m, t])
+        sys.exit()
 
-        job_list = put.generate_job_list(n_proc, np.array(total_job_list))
-
-    # scatter the job list
-    job_list_recv = comm.scatter(job_list, root=root_process)
-    
-    diff_rate_list   = []
-    binned_rate_list = []
-    total_rate_list  = []
+    time = phys_mod.physics_parameters['times'][0]
+    material = mat_mod.material
 
     if proc_id == root_process:
 
         print('Done configuring calculation\n\n------\n')
         print('Loading DFT files ...\n')
-            
-    material = mat_mod.material
 
     # load phonon file
     poscar_path = os.path.join(
@@ -212,22 +202,123 @@ if options['m'] != '' and options['p'] != '' and options['n'] != '':
         print('\nDone loading DFT files\n\n------\n')
         print('Starting rate computation ...\n')
 
-    # run for the given jobs
+    # using this to set the maximum bin number, otherwise the size of the diff rate
+    # vector will change depending on the q-mesh
+    [ph_eigenvectors_delta_E, ph_omega_delta_E] = phonopy_funcs.run_phonopy(phonon_file, 
+                    [[0., 0., 0.]])
+
+    max_delta_E = 4*np.amax(ph_omega_delta_E)
+
+    max_bin_num = math.floor((
+        max_delta_E - phys_mod.physics_parameters["threshold"]
+                    )/num_mod.numerics_parameters["energy_bin_width"]) + 1
+
+    phonopy_params = phonopy_funcs.get_phonon_file_data(phonon_file, born_exists)
+
+    vE_vec = physics.create_vE_vec(time)
+    delta = 2*phys_mod.physics_parameters['power_V'] - 2*phys_mod.physics_parameters['Fmed_power']
+
+    W_tensor_send = None
+
+    if proc_id == root_process:
+
+        print('Computing W tensor ... \n')
+
+        W_tensor_main = physics.calculate_W_tensor(phonon_file,
+                                                phonopy_params['num_atoms'],
+                                                phonopy_params['atom_masses'],
+                                                num_mod.numerics_parameters['n_DW_x'], 
+                                                num_mod.numerics_parameters['n_DW_y'], 
+                                                num_mod.numerics_parameters['n_DW_z'], 
+                                                phonopy_params['recip_red_to_XYZ'])
+
+
+        W_tensor_send = []
+
+        for n in range(n_proc):
+
+            W_tensor_send.append(W_tensor_main)
+
+    W_tensor = comm.scatter(W_tensor_send, root=root_process)
+
+    # total list of all the q vectors
+    q_list_total = []
+
+    num_jobs = 0
+
+    num_masses = len(phys_mod.dm_properties_dict['mass_list'])
+
+    for m in range(num_masses):
+
+        [q_XYZ_list, jacob_list] = mesh.create_q_mesh(
+                                        phys_mod.dm_properties_dict['mass_list'][m], 
+                                        phys_mod.physics_parameters['threshold'], 
+                                        vE_vec, 
+                                        num_mod.numerics_parameters,
+                                        phonon_file,
+                                        phonopy_params['atom_masses'],
+                                        delta)
+
+        k_red_list = mesh.generate_k_red_mesh_from_q_XYZ_mesh(q_XYZ_list, 
+                phonopy_params['recip_red_to_XYZ'])
+        G_XYZ_list = mesh.get_G_XYZ_list_from_q_XYZ_list(q_XYZ_list,
+                phonopy_params['recip_red_to_XYZ'])
+        
+        q_list_total.append({
+                'q_XYZ': q_XYZ_list,
+                'k_red': k_red_list,
+                'G_XYZ': G_XYZ_list,
+                'jacob': jacob_list
+            })
+
+        num_jobs += len(k_red_list)
+
+    q_list_total_recv = q_list_total
+
+    if proc_id == root_process:
+        print('Done computing q meshes.')
+        print()
+        print('Sending job lists...')
+        print()
+        
+        print('\tTotal number of jobs : '+str(num_jobs))
+        print()
+
+        total_job_list = []
+
+        for m in range(num_masses):
+            for q in range(len(q_list_total_recv[m]['k_red'])):
+
+                total_job_list.append([m, q])
+
+        job_list = put.generate_job_list(n_proc, np.array(total_job_list))
+
+    # scatter the job list
+    job_list_recv = comm.scatter(job_list, root=root_process)
+
+    diff_rate_list = np.zeros((num_masses, max_bin_num))
+    binned_rate_list = np.zeros((num_masses, phonopy_params['num_modes']))
+    total_rate_list = np.zeros(num_masses)
+
+    diff_rate = np.zeros((num_masses, max_bin_num))
+    binned_rate = np.zeros((num_masses, phonopy_params['num_modes']))
+    total_rate = np.zeros(num_masses)
+
+    if proc_id == root_process:
+        print('\nDone loading DFT files\n\n------\n')
+        print('Starting rate computation ...\n')
+
     first_job = True
+    
     for job in range(len(job_list_recv)):
 
         if (job_list_recv[job, 0] != -1 and job_list_recv[job, 1] != -1 ):
 
             job_id = job_list_recv[job]
 
-            mass = phys_mod.dm_properties_dict['mass_list'][int(job_id[0])]
-            time = phys_mod.physics_parameters['times'][int(job_id[1])]
-
-
-            if first_job and proc_id == root_process:
-                print('  Loading data to PHONOPY ...\n')
-
-            phonopy_params = phonopy_funcs.get_phonon_file_data(phonon_file, born_exists)
+            mass_index = int(job_id[0])
+            mass = phys_mod.dm_properties_dict['mass_list'][mass_index]
+            q_index = int(job_id[1])
 
             if first_job and proc_id == root_process:
 
@@ -253,48 +344,9 @@ if options['m'] != '' and options['p'] != '' and options['n'] != '':
 
             first_job = False
 
-            # generate q mesh
-            vE_vec = physics.create_vE_vec(time)
-
-            delta = 2*phys_mod.physics_parameters['power_V'] - 2*phys_mod.physics_parameters['Fmed_power']
-
-            [q_XYZ_list, jacob_list] = mesh.create_q_mesh(mass, 
-                                           phys_mod.physics_parameters['threshold'], 
-                                           vE_vec, 
-                                           num_mod.numerics_parameters,
-                                           phonon_file,
-                                           phonopy_params['atom_masses'],
-                                           delta)
-
-            # Beta testing a uniform q mesh for different calculations...
-
-            # [q_XYZ_list, jacob_list] = mesh.create_q_mesh_uniform(mass, 
-            #                                phys_mod.physics_parameters['threshold'], 
-            #                                vE_vec, 
-            #                                num_mod.numerics_parameters,
-            #                                phonon_file,
-            #                                phonopy_params['atom_masses'],
-            #                                delta, 
-            #                                q_red_to_XYZ = phonopy_params['recip_red_to_XYZ'],
-            #                                mesh = [20, 20, 20]
-            #                                )
-
-            k_red_list = mesh.generate_k_red_mesh_from_q_XYZ_mesh(q_XYZ_list, phonopy_params['recip_red_to_XYZ'])
-            G_XYZ_list = mesh.get_G_XYZ_list_from_q_XYZ_list(q_XYZ_list, phonopy_params['recip_red_to_XYZ'])
-
             # run phonopy
-            [ph_eigenvectors, ph_omega] = phonopy_funcs.run_phonopy(phonon_file, k_red_list)
-
-            # compute W tensor
-            W_tensor = physics.calculate_W_tensor(phonon_file,
-                                                       phonopy_params['num_atoms'],
-                                                       phonopy_params['atom_masses'],
-                                                       num_mod.numerics_parameters['n_DW_x'], 
-                                                       num_mod.numerics_parameters['n_DW_y'], 
-                                                       num_mod.numerics_parameters['n_DW_z'], 
-                                                       phonopy_params['recip_red_to_XYZ'])
-
-            # compute the differential, binned and total rates
+            [ph_eigenvectors, ph_omega] = phonopy_funcs.run_phonopy(phonon_file, 
+                    [q_list_total_recv[mass_index]['k_red'][q_index]])
 
             if 'special_model' in phys_mod.physics_parameters.keys():
 
@@ -306,11 +358,11 @@ if options['m'] != '' and options['p'] != '' and options['n'] != '':
 
                 if phys_mod.physics_parameters['special_model'] == 'dark_photon':
 
-                    [diff_rate, binned_rate, total_rate] = physics.calc_diff_rates_dark_photon(
+                    [diff_rate, binned_rate, total_rate] = physics.calc_diff_rates_dark_photon_q(
                                                     mass, 
-                                                    q_XYZ_list, 
-                                                    G_XYZ_list, 
-                                                    jacob_list, 
+                                                    q_list_total_recv[mass_index]['q_XYZ'], 
+                                                    q_list_total_recv[mass_index]['G_XYZ'],
+                                                    q_list_total_recv[mass_index]['jacob'],
                                                     phys_mod.physics_parameters,
                                                     vE_vec, 
                                                     num_mod.numerics_parameters, 
@@ -320,9 +372,7 @@ if options['m'] != '' and options['p'] != '' and options['n'] != '':
                                                     W_tensor, 
                                                     mat_mod.mat_properties_dict, 
                                                     phys_mod.dm_properties_dict, 
-                                                    phonon_file)
-
-
+                                                    phonon_file, max_bin_num, q_index)
 
                 else:
 
@@ -334,10 +384,11 @@ if options['m'] != '' and options['p'] != '' and options['n'] != '':
 
             else:
 
-                [diff_rate, binned_rate, total_rate] = physics.calc_diff_rates_general(mass, 
-                                                    q_XYZ_list, 
-                                                    G_XYZ_list, 
-                                                    jacob_list, 
+            # compute the differential, binned and total rates
+                [diff_rate, binned_rate, total_rate] = physics.calc_diff_rates_general_q(mass, 
+                                                    q_list_total_recv[mass_index]['q_XYZ'], 
+                                                    q_list_total_recv[mass_index]['G_XYZ'], 
+                                                    q_list_total_recv[mass_index]['jacob'], 
                                                     phys_mod.physics_parameters,
                                                     vE_vec, 
                                                     num_mod.numerics_parameters, 
@@ -348,11 +399,12 @@ if options['m'] != '' and options['p'] != '' and options['n'] != '':
                                                     phys_mod.c_dict, 
                                                     mat_mod.mat_properties_dict, 
                                                     phys_mod.dm_properties_dict, 
-                                                    phys_mod.c_dict_form, phonon_file)
+                                                    phys_mod.c_dict_form, phonon_file, 
+                                                    max_bin_num, q_index)
 
-            diff_rate_list.append([job_list_recv[job], np.real(diff_rate)])
-            binned_rate_list.append([job_list_recv[job], np.real(binned_rate)])
-            total_rate_list.append([job_list_recv[job], np.real(total_rate)])
+            diff_rate_list[mass_index] += np.real(diff_rate)
+            binned_rate_list[mass_index] += np.real(binned_rate)
+            total_rate_list[mass_index] += np.real(total_rate)
 
     if proc_id == root_process:
         print('Done computing rate. Returning all data to root node to write.\n\n------\n')
@@ -369,7 +421,7 @@ if options['m'] != '' and options['p'] != '' and options['n'] != '':
                 num_mod.io_parameters['output_folder'], 
                 material+'_'+phys_input_mod_name+'_'+num_input_mod_name+num_mod.io_parameters['output_filename_extra']+'.hdf5')
         
-        hdf5_output.hdf5_write_output(out_filename,
+        hdf5_output.hdf5_write_output_q(out_filename,
                                        num_mod.numerics_parameters,
                                        phys_mod.physics_parameters,
                                        phys_mod.dm_properties_dict,
@@ -391,3 +443,5 @@ else:
         "\t- numerics input file\n\n"+
         "must be present. These are added with the -m, -p, -n input flags. Add -h (--help) flags for more help.\n\n"+
         "See inputs/material/GaAs/GaAs_example.py, inputs/physics_model/dark_photon_example.py, inputs/numerics/standard.py for examples.")
+
+    sys.exit()

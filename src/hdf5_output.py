@@ -45,6 +45,10 @@ def hdf5_write_output(out_file, numerics_parameters, physics_parameters, dm_prop
     for index in physics_parameters:
         out_f.create_dataset('particle_physics/'+str(index), data=physics_parameters[index])
 
+    # version number
+
+    out_f.create_dataset('version', data="1.0.0")
+
     hdf5_write_dict(out_f, 'particle_physics/dm_properties', dm_properties_dict)
     hdf5_write_dict(out_f, 'particle_physics/c_coeffs', c_dict)
 

@@ -287,9 +287,9 @@ def calc_diff_rates_SI(mass, q_XYZ_list, G_XYZ_list, jacob_list, physics_paramet
     diff_rate = np.zeros(max_bin_num, dtype=complex)
     binned_rate = np.zeros(phonopy_params['num_modes'], dtype=complex)
 
-    fe0 = c_dict['1']['e']
-    fn0 = c_dict['1']['n']
-    fp0 = c_dict['1']['p']
+    fe0 = c_dict[1]['e']
+    fn0 = c_dict[1]['n']
+    fp0 = c_dict[1]['p']
     
     for q in range(n_q):
     
@@ -392,9 +392,9 @@ def calc_diff_rates_SI_q(mass, q_XYZ_list, G_XYZ_list, jacob_list, physics_param
     # F_prop_val holds propagator dependence of rate
     F_prop_val = (1.0/q_mag)**Fmed_power
 
-    fe0 = c_dict['1']['e']
-    fn0 = c_dict['1']['n']
-    fp0 = c_dict['1']['p']
+    fe0 = c_dict[1]['e']
+    fn0 = c_dict[1]['n']
+    fp0 = c_dict[1]['p']
 
     # NOTE (TT, 10/5/21): scalar mediators should be screened, as opposed to what is in Eq. 67 of 1910.08092.
     screen_val = 1.0/np.dot(q_hat, np.matmul(phonopy_params['dielectric'], q_hat))

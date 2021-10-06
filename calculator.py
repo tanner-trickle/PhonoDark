@@ -251,8 +251,6 @@ if options['m'] != '' and options['p'] != '' and options['n'] != '':
             if first_job and proc_id == root_process:
                 print('  Done loading data to PHONOPY\n')
 
-            first_job = False
-
             # generate q mesh
             vE_vec = physics.create_vE_vec(time)
 
@@ -353,6 +351,8 @@ if options['m'] != '' and options['p'] != '' and options['n'] != '':
             diff_rate_list.append([job_list_recv[job], np.real(diff_rate)])
             binned_rate_list.append([job_list_recv[job], np.real(binned_rate)])
             total_rate_list.append([job_list_recv[job], np.real(total_rate)])
+
+            first_job = False
 
     if proc_id == root_process:
         print('Done computing rate. Returning all data to root node to write.\n\n------\n')

@@ -302,7 +302,7 @@ def calc_diff_rates_SI(mass, q_XYZ_list, G_XYZ_list, jacob_list, physics_paramet
         F_prop_val = (1.0/q_mag)**Fmed_power
 
         # NOTE (TT, 10/5/21): scalar mediators should be screened, as opposed to what is in Eq. 67 of 1910.08092.
-        screen_val = (1.0/np.dot(q_hat, np.matmul(phonopy_params['dielectric'], q_hat))
+        screen_val = 1.0/np.dot(q_hat, np.matmul(phonopy_params['dielectric'], q_hat))
 
         # Eq 50 in 1910.08092
         fe = screen_val*fe0
@@ -397,7 +397,7 @@ def calc_diff_rates_SI_q(mass, q_XYZ_list, G_XYZ_list, jacob_list, physics_param
     fp0 = c_dict['1']['p']
 
     # NOTE (TT, 10/5/21): scalar mediators should be screened, as opposed to what is in Eq. 67 of 1910.08092.
-    screen_val = (1.0/np.dot(q_hat, np.matmul(phonopy_params['dielectric'], q_hat))
+    screen_val = 1.0/np.dot(q_hat, np.matmul(phonopy_params['dielectric'], q_hat))
 
     # Eq 50 in 1910.08092
     fe = screen_val*fe0

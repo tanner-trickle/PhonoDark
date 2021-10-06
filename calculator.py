@@ -320,7 +320,7 @@ if options['m'] != '' and options['p'] != '' and options['n'] != '':
                                                     W_tensor, 
                                                     mat_mod.mat_properties_dict, 
                                                     phys_mod.dm_properties_dict, 
-                                                    phonon_file, c_dict)
+                                                    phonon_file, phys_mod.c_dict)
 
 
 

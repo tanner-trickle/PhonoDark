@@ -1,6 +1,10 @@
-# Dark Matter - Phonon Scattering Rate Calculator
+# PhonoDark: Dark Matter - Phonon Scattering Rate Calculator
 
 **version: 1.1.0**
+
+[**Home**](https://phonodark.caltech.edu)
+
+[**Interactive Web Page**](https://demo-phonon-web-app.herokuapp.com/)
 
 Computes dark matter (DM)-phonon scattering rate for a general scattering potential and target. 
 
@@ -88,7 +92,7 @@ Specify the lattice degrees of freedom in the mat_properties_dict dictionary:
 - mat_properties_dict["S_list"][particle_id] : total spin, S
 - mat_properties_dict["L_list"][particle_id] : total angular momentum, L
 - mat_properties_dict["L_S_list"][particle_id] : total spin-orbit coupling scalar component, L.S
-- mat_properties_dict["L_tens_S_list"][particle_id] : total spin-orbit coupling, traceless symmetric tensor component, (LxS)___.
+- mat_properties_dict["L_tens_S_list"][particle_id] : total spin-orbit coupling, traceless symmetric tensor component, (LxS).
 
 for each ion and each SM particle (electron (particle_id = "e"), proton (particle_id = "p"), neutron (particle_id = "n")) in the primitive cell, defined more rigorously in the corresponding paper. Also specify
 
@@ -177,15 +181,19 @@ where the third and fourth indicies, both 0 above, are the time of day and mass 
     
     rate = data['/data/rate/0/0']
 
-# References
+# Papers using `PhonoDark`
 
-Some papers which used a previous version of this program:
+- A. Coskuner, T. Trickle, Z. Zhang, K. M. Zurek, [Directional detectability of dark matter with single phonon excitations: Target comparison]
+- T. Trickle, Z. Zhang, K. M. Zurek, [Effective Field Theory of Dark Matter Direct Detection With Collective Excitations]
+- T. Trickle, Z. Zhang, K. M. Zurek, K. Inzani and S. Griffin, [Multi-Channel Direct Detection of Light Dark Matter: Theoretical Framework]
+- S. M. Griffin, K. Inzani, T. Trickle, Z. Zhang and K. M. Zurek, [Multichannel direct detection of light dark matter: Target comparison]
 
-- T. Trickle, Z. Zhang, K. M. Zurek, K. Inzani, and S. Griffin, JHEP 03, 036 (2020), arXiv:1910.08092 [hep-ph]
+[Multi-Channel Direct Detection of Light Dark Matter: Theoretical Framework]: https://doi.org/10.1007/JHEP03(2020)036
+[Multichannel direct detection of light dark matter: Target comparison]: https://doi.org/10.1103/PhysRevD.101.055004
+[Effective Field Theory of Dark Matter Direct Detection With Collective Excitations]: https://arxiv.org/abs/2009.13534
+[Directional detectability of dark matter with single phonon excitations: Target comparison]: https://journals.aps.org/prd/abstract/10.1103/PhysRevD.105.015010
 
-- S. M. Griffin, K. Inzani, T. Trickle, Z. Zhang, and K. M. Zurek, Phys. Rev. D 101, 055004 (2020), arXiv:1910.10716 [hep-ph]
-
-# Citation
+# Attribution
 
 If you use this program for your work please cite this paper:
 
@@ -203,5 +211,3 @@ with the citation:
     month = "9",
     year = "2020"
     }
-    
-Thanks!

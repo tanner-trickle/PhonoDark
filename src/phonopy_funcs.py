@@ -95,7 +95,7 @@ def get_phonon_file_data(phonon_file, born_exists):
 
             Transformation matrices
 
-            pos_red_to_XYZ - reduced coordinate positions to Xyz
+            pos_red_to_XYZ - reduced coordinate positions to XYZ
 
             pos_XYZ_to_red - XYZ coordinates to red
 

@@ -251,8 +251,6 @@ if options['m'] != '' and options['p'] != '' and options['n'] != '':
             if first_job and proc_id == root_process:
                 print('  Done loading data to PHONOPY\n')
 
-            first_job = False
-
             # generate q mesh
             vE_vec = physics.create_vE_vec(time)
 
@@ -304,9 +302,9 @@ if options['m'] != '' and options['p'] != '' and options['n'] != '':
                     print('    Model : '+phys_mod.physics_parameters['special_model'])
                     print()
 
-                if phys_mod.physics_parameters['special_model'] == 'dark_photon':
+                if phys_mod.physics_parameters['special_model'] == 'SI':
 
-                    [diff_rate, binned_rate, total_rate] = physics.calc_diff_rates_dark_photon(
+                    [diff_rate, binned_rate, total_rate] = physics.calc_diff_rates_SI(
                                                     mass, 
                                                     q_XYZ_list, 
                                                     G_XYZ_list, 
@@ -320,7 +318,7 @@ if options['m'] != '' and options['p'] != '' and options['n'] != '':
                                                     W_tensor, 
                                                     mat_mod.mat_properties_dict, 
                                                     phys_mod.dm_properties_dict, 
-                                                    phonon_file)
+                                                    phonon_file, phys_mod.c_dict)
 
 
 
@@ -353,6 +351,8 @@ if options['m'] != '' and options['p'] != '' and options['n'] != '':
             diff_rate_list.append([job_list_recv[job], np.real(diff_rate)])
             binned_rate_list.append([job_list_recv[job], np.real(binned_rate)])
             total_rate_list.append([job_list_recv[job], np.real(total_rate)])
+
+            first_job = False
 
     if proc_id == root_process:
         print('Done computing rate. Returning all data to root node to write.\n\n------\n')

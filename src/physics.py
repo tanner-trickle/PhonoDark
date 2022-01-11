@@ -252,12 +252,15 @@ def calc_diff_rates_general(mass, q_XYZ_list, G_XYZ_list, jacob_list, physics_pa
 
     return [diff_rate, binned_rate, total_rate]
 
-def calc_diff_rates_dark_photon(mass, q_XYZ_list, G_XYZ_list, jacob_list, physics_parameters,
-                    vE_vec, numerics_parameters, phonopy_params,ph_omega, ph_eigenvectors,
+def calc_diff_rates_SI(mass, q_XYZ_list, G_XYZ_list, jacob_list, physics_parameters,
+                    vE_vec, numerics_parameters, phonopy_params, ph_omega, ph_eigenvectors,
                     W_tensor, mat_properties_dict, dm_properties_dict, 
-                    phonon_file):
+                    phonon_file, c_dict):
     """
-        Computes the differential rate specifically for the dark photon model.
+        Computes the differential rate specifically for SI models, taking in to account the BORN effective
+        charges when necessary.
+
+        Coupling parameterization is the same as in arXiv:1910.08092.
 
         Born effective charges from the BORN file are used.
     """
@@ -283,6 +286,10 @@ def calc_diff_rates_dark_photon(mass, q_XYZ_list, G_XYZ_list, jacob_list, physic
 
     diff_rate = np.zeros(max_bin_num, dtype=complex)
     binned_rate = np.zeros(phonopy_params['num_modes'], dtype=complex)
+
+    fe0 = c_dict[1]['e']
+    fn0 = c_dict[1]['n']
+    fp0 = c_dict[1]['p']
     
     for q in range(n_q):
     
@@ -293,6 +300,14 @@ def calc_diff_rates_dark_photon(mass, q_XYZ_list, G_XYZ_list, jacob_list, physic
         
         # F_prop_val holds propagator dependence of rate
         F_prop_val = (1.0/q_mag)**Fmed_power
+
+        # NOTE (TT, 10/5/21): scalar mediators should be screened, as opposed to what is in Eq. 67 of 1910.08092.
+        screen_val = 1.0/np.dot(q_hat, np.matmul(phonopy_params['dielectric'], q_hat))
+
+        # Eq 50 in 1910.08092
+        fe = screen_val*fe0
+        fp = fp0 + (1.0 - screen_val)*fe0 
+        fn = fn0 
 
         for nu in range(phonopy_params['num_modes']):
 
@@ -314,13 +329,16 @@ def calc_diff_rates_dark_photon(mass, q_XYZ_list, G_XYZ_list, jacob_list, physic
 
                     for j in range(phonopy_params['num_atoms']):
 
-                        Y_j = np.matmul(phonopy_params['born'][j], q_vec)
+                        # Eq. 104
+                        A_j = phonopy_params['A_list'][j]
+                        Z_j = phonopy_params['Z_list'][j]
 
-                        Y_dot_e_star = (
-                                np.dot(Y_j, np.conj(ph_eigenvectors[q][nu][j]))/
-                                np.dot(q_hat, 
-                                    np.matmul(phonopy_params['dielectric'], q_hat))
-                                )
+                        Y_j = -fe*np.matmul(phonopy_params['born'][j], q_vec) \
+                                + fe*Z_j*q_vec \
+                                + fn*(A_j - Z_j)*q_vec \
+                                + fp*Z_j*q_vec
+
+                        Y_dot_e_star = np.dot(Y_j, np.conj(ph_eigenvectors[q][nu][j]))
                         
                         dw_val_j = np.dot(q_vec, np.matmul(W_tensor[j], q_vec))
                         
@@ -345,10 +363,10 @@ def calc_diff_rates_dark_photon(mass, q_XYZ_list, G_XYZ_list, jacob_list, physic
 
     return [diff_rate, binned_rate, total_rate]
 
-def calc_diff_rates_dark_photon_q(mass, q_XYZ_list, G_XYZ_list, jacob_list, physics_parameters,
+def calc_diff_rates_SI_q(mass, q_XYZ_list, G_XYZ_list, jacob_list, physics_parameters,
                     vE_vec, numerics_parameters, phonopy_params,ph_omega, ph_eigenvectors,
                     W_tensor, mat_properties_dict, dm_properties_dict, 
-                    phonon_file, max_bin_num, q_index):
+                    phonon_file, max_bin_num, q_index, c_dict):
     """
         Computes the differential rate for a specific q point for the dark photon model.
     """
@@ -363,16 +381,28 @@ def calc_diff_rates_dark_photon_q(mass, q_XYZ_list, G_XYZ_list, jacob_list, phys
 
     m_cell = sum(phonopy_params['atom_masses'])
 
+    diff_rate = np.zeros(max_bin_num, dtype=complex)
+    binned_rate = np.zeros(phonopy_params['num_modes'], dtype=complex)
+
     q_vec = q_XYZ_list[q_index]
     q_mag = np.linalg.norm(q_vec)
 
     q_hat = q_vec/q_mag
-
-    diff_rate = np.zeros(max_bin_num, dtype=complex)
-    binned_rate = np.zeros(phonopy_params['num_modes'], dtype=complex)
     
     # F_prop_val holds propagator dependence of rate
     F_prop_val = (1.0/q_mag)**Fmed_power
+
+    fe0 = c_dict[1]['e']
+    fn0 = c_dict[1]['n']
+    fp0 = c_dict[1]['p']
+
+    # NOTE (TT, 10/5/21): scalar mediators should be screened, as opposed to what is in Eq. 67 of 1910.08092.
+    screen_val = 1.0/np.dot(q_hat, np.matmul(phonopy_params['dielectric'], q_hat))
+
+    # Eq 50 in 1910.08092
+    fe = screen_val*fe0
+    fp = fp0 + (1.0 - screen_val)*fe0 
+    fn = fn0 
 
     for nu in range(phonopy_params['num_modes']):
 
@@ -394,13 +424,18 @@ def calc_diff_rates_dark_photon_q(mass, q_XYZ_list, G_XYZ_list, jacob_list, phys
 
                 for j in range(phonopy_params['num_atoms']):
 
-                    Y_j = np.matmul(phonopy_params['born'][j], q_vec)
+                    # Eq. 104
+                    A_j = phonopy_params['A_list'][j]
+                    Z_j = phonopy_params['Z_list'][j]
 
-                    Y_dot_e_star = (
-                            np.dot(Y_j, np.conj(ph_eigenvectors[0][nu][j]))/
-                            np.dot(q_hat, 
-                                np.matmul(phonopy_params['dielectric'], q_hat))
-                            )
+                    Y_j = -fe*np.matmul(phonopy_params['born'][j], q_vec) \
+                            + fe*Z_j*q_vec \
+                            + fn*(A_j - Z_j)*q_vec \
+                            + fp*Z_j*q_vec
+
+                    Y_dot_e_star = np.dot(Y_j, np.conj(ph_eigenvectors[0][nu][j]))
+
+                    Y_j = np.matmul(phonopy_params['born'][j], q_vec)
                     
                     dw_val_j = np.dot(q_vec, np.matmul(W_tensor[j], q_vec))
                     

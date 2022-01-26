@@ -1,6 +1,4 @@
 """
-    Example input file for a light mediator, dark photon model.
-
     Natural (eV) units are used throughout unless otherwise specified
 """
 
@@ -17,17 +15,17 @@ include_screen = True
 input_masses = []
 
 log_start_mass = 3
-log_end_mass = 7
+log_end_mass = 10
 
-n_masses = 40
+n_masses = 100
 
 for i in range(n_masses):
     log_m = log_start_mass + (log_end_mass - log_start_mass)*(i/(n_masses - 1))
     input_masses.append(10**log_m)
 
 # Include all even multiples of 10 are computed for
-for i in range(log_end_mass - log_start_mass + 1):
-    input_masses.append(10**(i + log_start_mass))
+#for i in range(log_end_mass - log_start_mass + 1):
+#    input_masses.append(10**(i + log_start_mass))
 
 input_masses = list(dict.fromkeys(input_masses))
 input_masses.sort()
@@ -43,7 +41,7 @@ physics_parameters = {
         # time of days (hr)
         'times'     : [0.],
         # - d log FDM / d log q. q dependence of mediator propagator
-        'Fmed_power': 2.,
+        'Fmed_power': 0.,
         # power of q in the potential, used to find optimal integration mesh
         'power_V'   : 0.,
         # flag to compute for a specific model
@@ -69,9 +67,9 @@ dm_properties_dict = {
 
 c_dict = {
 	1: {
-            "e": 1,
-            "p": -1,
-            "n": 0
+            "e": 0,
+            "p": 1,
+            "n": 1
 	},
 	3: {
             "e": 0,

@@ -1,7 +1,6 @@
 # Byte-compiled / optimized / DLL files
 
-inputs/material/GaAs/*
-data/
+*.DS_Store
 
 __pycache__/
 *.py[cod]

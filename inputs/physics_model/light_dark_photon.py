@@ -15,9 +15,9 @@ include_screen = True
 input_masses = []
 
 log_start_mass = 3
-log_end_mass = 10
+log_end_mass = 7
 
-n_masses = 100
+n_masses = 80
 
 for i in range(n_masses):
     log_m = log_start_mass + (log_end_mass - log_start_mass)*(i/(n_masses - 1))

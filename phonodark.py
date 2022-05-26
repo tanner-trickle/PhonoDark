@@ -241,12 +241,12 @@ if options['m'] != '' and options['p'] != '' and options['n'] != '':
                 print(phonopy_params['dielectric'])
                 print()
             
-            if not phys_mod.include_screen:
-                if proc_id == root_process:
-                    print('  Include screen is FALSE. Setting the dielectric to the identity.\n')
-                    print()
-
-                phonopy_params['dielectric'] = np.identity(3)
+#            if not phys_mod.include_screen:
+#                if proc_id == root_process:
+#                    print('  Include screen is FALSE. Setting the dielectric to the identity.\n')
+#                    print()
+#
+#                phonopy_params['dielectric'] = np.identity(3)
 
             if first_job and proc_id == root_process:
                 print('  Done loading data to PHONOPY\n')

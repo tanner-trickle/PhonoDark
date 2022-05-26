@@ -6,9 +6,6 @@ import src.constants as const
 
 #################
 
-# a flag to ignore screening effects
-include_screen = True
-
 # Create the list of masses to compute for
 # input_masses = [10**6, 10**7, 10**8, 10**9, 10**10]
 
@@ -69,7 +66,8 @@ c_dict = {
 	1: {
             "e": 1,
             "p": -1,
-            "n": 0
+            "n": 0,
+            "screened": True
 	},
 	3: {
             "e": 0,

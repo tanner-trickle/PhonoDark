@@ -106,11 +106,18 @@ def c_dict_form_full(q_vec, dielectric, c_dict, c_dict_form, mass, spin):
         fe_bare = c_dict[op_id]['e']
         fn_bare = c_dict[op_id]['n']
         fp_bare = c_dict[op_id]['p']
-
-        c_dict_in_med[op_id]['e'] = (screen_val*fe_bare)*c_dict_form(op_id, 'e', q_vec, mass, spin)
-        c_dict_in_med[op_id]['n'] = (fn_bare)*c_dict_form(op_id, 'n', q_vec, mass, spin)
-        c_dict_in_med[op_id]['p'] = (fp_bare + ( 1.0 - screen_val )*fe_bare)*c_dict_form(op_id, 'p', q_vec, mass, spin) 
-
+        
+        if c_dict[op_id].get('screened'):
+        
+            c_dict_in_med[op_id]['e'] = (screen_val*fe_bare)*c_dict_form(op_id, 'e', q_vec, mass, spin)
+            c_dict_in_med[op_id]['n'] = (fn_bare)*c_dict_form(op_id, 'n', q_vec, mass, spin)
+            c_dict_in_med[op_id]['p'] = (fp_bare + ( 1.0 - screen_val )*fe_bare)*c_dict_form(op_id, 'p', q_vec, mass, spin)
+            
+        else:
+            c_dict_in_med[op_id]['e'] = fe_bare*c_dict_form(op_id, 'e', q_vec, mass, spin)
+            c_dict_in_med[op_id]['n'] = fn_bare*c_dict_form(op_id, 'n', q_vec, mass, spin)
+            c_dict_in_med[op_id]['p'] = fp_bare*c_dict_form(op_id, 'p', q_vec, mass, spin)
+			
     return c_dict_in_med
 
 def calc_diff_rates_general(mass, q_XYZ_list, G_XYZ_list, jacob_list, physics_parameters,

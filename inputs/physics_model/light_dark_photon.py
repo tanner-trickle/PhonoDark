@@ -63,57 +63,57 @@ dm_properties_dict = {
 """
 
 c_dict = {
-	1: {
+	"1": {
             "e": 1,
             "p": -1,
             "n": 0,
             "screened": True
 	},
-	3: {
-            "e": 0,
-            "p": 0,
-            "n": 0
-	},
-	4: {
-            "e": 0,
-            "p": 0,
-            "n": 0
-	},
-	5: {
-            "e": 0,
-            "p": 0,
-            "n": 0
-	},
-	6: {
-            "e": 0,
-            "p": 0,
-            "n": 0
-	},
-	7: {
-            "e": 0,
-            "p": 0,
-            "n": 0
-	},
-	8: {
-            "e": 0,
-            "p": 0,
-            "n": 0
-	},
-	9: {
-            "e": 0,
-            "p": 0,
-            "n": 0
-	},
-	10: {
-            "e": 0,
-            "p": 0,
-            "n": 0
-	},
-	11: {
-            "e": 0,
-            "p": 0,
-            "n": 0
-	},
+#	3: {
+#            "e": 0,
+#            "p": 0,
+#            "n": 0
+#	},
+#	4: {
+#            "e": 0,
+#            "p": 0,
+#            "n": 0
+#	},
+#	5: {
+#            "e": 0,
+#            "p": 0,
+#            "n": 0
+#	},
+#	6: {
+#            "e": 0,
+#            "p": 0,
+#            "n": 0
+#	},
+#	7: {
+#            "e": 0,
+#            "p": 0,
+#            "n": 0
+#	},
+#	8: {
+#            "e": 0,
+#            "p": 0,
+#            "n": 0
+#	},
+#	9: {
+#            "e": 0,
+#            "p": 0,
+#            "n": 0
+#	},
+#	10: {
+#            "e": 0,
+#            "p": 0,
+#            "n": 0
+#	},
+#	11: {
+#            "e": 0,
+#            "p": 0,
+#            "n": 0
+#	},
 }
 
 
@@ -122,7 +122,7 @@ def c_dict_form(op_id, particle_id, q_vec, mass, spin):
         q/m_chi dependence of the c coefficients. 
 
         Input:
-            op_id : integer, operator id number
+            op_id : string, operator id number
             particle_id : string, {"e", "p", "n"} for electron, proton, neutron resp.
 
             q_vec : (real, real, real), momentum vector in XYZ coordinates
@@ -141,54 +141,54 @@ def c_dict_form(op_id, particle_id, q_vec, mass, spin):
         return 1.0
 
     return {
-            1: {
+            "1": {
                 "e": one_func,
                 "p": one_func,
                 "n": one_func
             },
-            3: {
-                "e": one_func,
-                "p": one_func,
-                "n": one_func
-            },
-            4: {
-                "e": one_func,
-                "p": one_func,
-                "n": one_func
-            },
-            5: {
-                "e": one_func,
-                "p": one_func,
-                "n": one_func
-            },
-            6: {
-                "e": one_func,
-                "p": one_func,
-                "n": one_func
-            },
-            7: {
-                "e": one_func,
-                "p": one_func,
-                "n": one_func
-            },
-            8: {
-                "e": one_func,
-                "p": one_func,
-                "n": one_func
-            },
-            9: {
-                "e": one_func,
-                "p": one_func,
-                "n": one_func
-            },
-            10: {
-                "e": one_func,
-                "p": one_func,
-                "n": one_func
-            },
-            11: {
-                "e": one_func,
-                "p": one_func,
-                "n": one_func
-            },
+#            3: {
+#                "e": one_func,
+#                "p": one_func,
+#                "n": one_func
+#            },
+#            4: {
+#                "e": one_func,
+#                "p": one_func,
+#                "n": one_func
+#            },
+#            5: {
+#                "e": one_func,
+#                "p": one_func,
+#                "n": one_func
+#            },
+#            6: {
+#                "e": one_func,
+#                "p": one_func,
+#                "n": one_func
+#            },
+#            7: {
+#                "e": one_func,
+#                "p": one_func,
+#                "n": one_func
+#            },
+#            8: {
+#                "e": one_func,
+#                "p": one_func,
+#                "n": one_func
+#            },
+#            9: {
+#                "e": one_func,
+#                "p": one_func,
+#                "n": one_func
+#            },
+#            10: {
+#                "e": one_func,
+#                "p": one_func,
+#                "n": one_func
+#            },
+#            11: {
+#                "e": one_func,
+#                "p": one_func,
+#                "n": one_func
+#            },
         }[op_id][particle_id](q_vec, mass, spin)

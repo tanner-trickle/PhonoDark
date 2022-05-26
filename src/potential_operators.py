@@ -24,27 +24,26 @@ def V1_00(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
 
     return mat_properties_dict["N_list"][particle_id]
 
-def V3_00(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
+def V3b_00(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
 
     val = np.zeros(num_atoms, dtype=complex)
 
     q_dir = q_vec/np.linalg.norm(q_vec)
 
-    overall_const = np.linalg.norm(q_vec)**2/mat_properties_dict["mass"][particle_id]**2
+    overall_const = -0.5*np.linalg.norm(q_vec)**2/mat_properties_dict["mass"][particle_id]**2
 
     for j in range(num_atoms):
 
-            L_d_S = mat_properties_dict["L_S_list"][particle_id][j]
-            L_t_S = mat_properties_dict["L_tens_S_list"][particle_id][j]
+            LxS_val = mat_properties_dict["LxS_list"][particle_id][j]
 
             val[j] = overall_const*(
-                            (1.0/3.0)*L_d_S - (1.0/2.0)*np.dot(q_dir, np.matmul(L_t_S, q_dir))
+                            np.trace(LxS_val)- np.dot(q_dir, np.matmul(LxS_val, q_dir))
                             )
 
     return val
 
 
-def V3_10(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
+def V3a_10(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
 
     val = np.zeros((num_atoms, 3), dtype=complex)
 
@@ -60,11 +59,17 @@ def V3_10(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
 
     return val
 
-def V5_01(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
+
+def V4_01(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
+
+        return mat_properties_dict["S_list"][particle_id]
+
+
+def V5b_01(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
 
     val = np.zeros((num_atoms, 3), dtype=complex)
 
-    overall_const = 0.5*np.dot(q_vec, q_vec)*(mat_properties_dict["mass"][particle_id])**(-2)
+    overall_const = -0.5*np.dot(q_vec, q_vec)*(mat_properties_dict["mass"][particle_id])**(-2)
 
     q_dir = q_vec/np.linalg.norm(q_vec)
 
@@ -78,7 +83,7 @@ def V5_01(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
 
     return val
 
-def V5_11(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
+def V5a_11(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
 
     val = np.zeros((num_atoms, 3, 3), dtype=complex)
 
@@ -116,7 +121,7 @@ def V6_01(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
 
         return val 
 
-def V7_00(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
+def V7a_00(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
 
         val = np.zeros(num_atoms, dtype=complex)
 
@@ -132,12 +137,27 @@ def V7_00(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
 
         return val 
 
-def V7_10(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
+def V7b_00(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
 
-        return mat_properties_dict["S_list"][particle_id]
+    val = np.zeros(num_atoms, dtype=complex)
 
+    overall_const = -(0.5)*(mass)**(-1.0)*1j
 
-def V8_01(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
+    for j in range(num_atoms):
+
+        LxS_val = mat_properties_dict["LxS_list"][particle_id][j]
+
+        for alpha in range(3):
+            for beta in range(3):
+                for chi in range(3):
+
+                    val[j] += overall_const*(
+                                    LeviCivita(alpha, beta, chi)*LxS_val[alpha][beta]*q_vec[chi]
+                            )
+
+    return val
+
+def V8a_01(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
 
         val = np.zeros((num_atoms, 3), dtype=complex)
 
@@ -146,16 +166,14 @@ def V8_01(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
         for j in range(num_atoms):
 
                 N_val = mat_properties_dict["N_list"][particle_id][j]
-                L_val = mat_properties_dict["L_list"][particle_id][j]
 
                 val[j] = overall_const*(
-                                -N_val*(q_vec/(2.0*mass)) + 
-                                (1j/mat_properties_dict["mass"][particle_id])*np.cross(q_vec, L_val)
+                                -N_val*(q_vec/mass)
                         )
 
         return val
 
-def V8_11(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
+def V8a_11(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
 
         val = np.zeros((num_atoms, 3, 3), dtype=complex)
 
@@ -167,6 +185,22 @@ def V8_11(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
 
                 val[j] = overall_const*(
                                 N_val*np.identity(3)
+                        )
+
+        return val
+
+def V8b_01(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
+
+        val = np.zeros((num_atoms, 3), dtype=complex)
+
+        overall_const = -0.5
+
+        for j in range(num_atoms):
+
+                L_val = mat_properties_dict["L_list"][particle_id][j]
+
+                val[j] = overall_const*(
+                                (1j/mat_properties_dict["mass"][particle_id])*np.cross(q_vec, L_val)
                         )
 
         return val
@@ -235,7 +269,7 @@ def V_terms_func(q_vec, op_id, exp_id, particle_id, num_atoms, mat_properties_di
 					mass, spin):
 	"""
 
-	op_id : NR operator ID (integer)
+	op_id : NR operator ID (str)
 	exp_id : expansion ID defined above (str)
 	particle_id: type of particle (str)
 
@@ -247,61 +281,85 @@ def V_terms_func(q_vec, op_id, exp_id, particle_id, num_atoms, mat_properties_di
 	"""
 
 	return {
-		1:{
+		"1":{
 			"00": V1_00,
 			"01": zeros_01,
 			"10": zeros_01,
 			"11": zeros_11
 		},
-		3:{
-			"00": V3_00,
+		"3a":{
+			"00": zeros_00,
 			"01": zeros_01,
-			"10": V3_10,
+			"10": V3a_10,
 			"11": zeros_11
 		},
-		4:{
-			"00": zeros_00,
-			"01": V7_10,
+		"3b":{
+			"00": V3b_00,
+			"01": zeros_01,
 			"10": zeros_01,
 			"11": zeros_11
 		},
-		5:{
+		"4":{
 			"00": zeros_00,
-			"01": V5_01,
+			"01": V4_01,
 			"10": zeros_01,
-			"11": V5_11
+			"11": zeros_11
 		},
-		6:{
+		"5a":{
+			"00": zeros_00,
+			"01": zeros_01,
+			"10": zeros_01,
+			"11": V5a_11
+		},
+		"5b":{
+			"00": zeros_00,
+			"01": V5b_01,
+			"10": zeros_01,
+			"11": zeros_11
+		},
+		"6":{
 			"00": zeros_00,
 			"01": V6_01,
             "10": zeros_01,
 			"11": zeros_11
 		},
-		7:{
-			"00": V7_00,
+		"7a":{
+			"00": V7a_00,
 			"01": zeros_01,
-			"10": V7_10,
+			"10": V4_01,
 			"11": zeros_11
 		},
-		8:{
-			"00": zeros_00,
-			"01": V8_01,
+		"7b":{
+			"00": V7b_00,
+			"01": zeros_01,
 			"10": zeros_01,
-			"11": V8_11
+			"11": zeros_11
 		},
-		9:{
+		"8a":{
+			"00": zeros_00,
+			"01": V8a_01,
+			"10": zeros_01,
+			"11": V8a_11
+		},
+		"8b":{
+			"00": zeros_00,
+			"01": V8b_01,
+			"10": zeros_01,
+			"11": zeros_11
+		},
+		"9":{
 			"00": zeros_00,
 			"01": V9_01,
 			"10": zeros_01,
 			"11": zeros_11
 		},
-		10:{
+		"10":{
 			"00": V10_00,
 			"01": zeros_01,
 			"10": zeros_01,
 			"11": zeros_11
 		},
-		11:{
+		"11":{
 			"00": zeros_00,
 			"01": V11_01,
 			"10": zeros_01,

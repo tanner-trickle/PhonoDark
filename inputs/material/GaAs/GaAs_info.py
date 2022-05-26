@@ -36,11 +36,11 @@ mat_properties_dict = {
 					69.723 - 31.0,
 					74.9216 - 33.0])
 	},
-	"L_S_list": {
-		"e": np.zeros(num_atoms),
-		"p": np.zeros(num_atoms),
-		"n": np.zeros(num_atoms)
-	},
+#	"L_S_list": {
+#		"e": np.zeros(num_atoms),
+#		"p": np.zeros(num_atoms),
+#		"n": np.zeros(num_atoms)
+#	},
 	"S_list": {
 		"e": np.zeros((num_atoms, 3)),
 		"p": np.zeros((num_atoms, 3)),
@@ -51,7 +51,7 @@ mat_properties_dict = {
 		"p": np.zeros((num_atoms, 3)),
 		"n": np.zeros((num_atoms, 3))
 	},
-	"L_tens_S_list": {
+	"LxS_list": {
 		"e": np.zeros((num_atoms, 3, 3)),
 		"p": np.zeros((num_atoms, 3, 3)),
 		"n": np.zeros((num_atoms, 3, 3))

@@ -253,6 +253,181 @@ def V11_01(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
 
         return val
 
+def V12a_01(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
+
+        val = np.zeros((num_atoms, 3), dtype=complex)
+
+        overall_const = -0.5/mass
+
+        for j in range(num_atoms):
+
+                S_val = mat_properties_dict["S_list"][particle_id][j]
+
+                val[j] = overall_const*(
+                                np.cross(S_val,q_vec)
+                        )
+
+        return val
+
+def V12a_11(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
+
+    val = np.zeros((num_atoms, 3, 3), dtype=complex)
+
+    overall_const = 1
+
+    for j in range(num_atoms):
+
+        S_val = mat_properties_dict["S_list"][particle_id][j]
+
+        for alpha in range(3):
+            for beta in range(3):
+                for chi in range(3):
+
+                    val[j][alpha][beta] += overall_const*(
+                                    LeviCivita(beta, chi, alpha)*S_val[chi]
+                            )
+
+    return val
+
+def V12b_01(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
+
+        val = np.zeros((num_atoms, 3), dtype=complex)
+
+        overall_const = -0.5*(1j/mat_properties_dict["mass"][particle_id])
+
+        for j in range(num_atoms):
+
+                LxS_val = mat_properties_dict["LxS_list"][particle_id][j]
+
+                val[j] = overall_const*(
+                                np.trace(LxS_val)*q_vec - np.matmul(LxS_val,q_vec)
+                        )
+
+        return val
+
+def V13a_01(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
+
+        val = np.zeros((num_atoms, 3), dtype=complex)
+
+        overall_const = -0.5*(1j/mat_properties_dict["mass"][particle_id])/mass
+
+        for j in range(num_atoms):
+
+                S_val = mat_properties_dict["S_list"][particle_id][j]
+
+                val[j] = overall_const*(
+                                np.dot(q_vec, S_val)*q_vec
+                        )
+
+        return val
+
+def V13a_11(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
+
+        val = np.zeros((num_atoms, 3, 3), dtype=complex)
+
+        overall_const = (1j/mat_properties_dict["mass"][particle_id])
+
+        for j in range(num_atoms):
+
+                S_val = mat_properties_dict["S_list"][particle_id][j]
+
+                val[j] = overall_const*(
+                                np.dot(q_vec, S_val)*np.identity(3)
+                        )
+
+        return val
+
+def V13b_01(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
+
+        val = np.zeros((num_atoms, 3), dtype=complex)
+
+        overall_const = -0.5*mat_properties_dict["mass"][particle_id]**(-2)
+
+        for j in range(num_atoms):
+
+                LxS_val = mat_properties_dict["LxS_list"][particle_id][j]
+
+                val[j] = overall_const*(
+                                np.cross(np.matmul(LxS_val,q_vec), q_vec)
+                        )
+
+        return val
+
+def V14a_11(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
+
+    val = np.zeros((num_atoms, 3, 3), dtype=complex)
+
+    overall_const = 1j/mat_properties_dict["mass"][particle_id]
+
+    for j in range(num_atoms):
+
+        S_val = mat_properties_dict["S_list"][particle_id][j]
+
+        for alpha in range(3):
+            for beta in range(3):
+
+                val[j][alpha][beta] += overall_const*(
+                                S_val[alpha]*q_vec[beta]
+                        )
+
+    return val
+
+def V14b_01(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
+
+    val = np.zeros((num_atoms, 3), dtype=complex)
+
+    overall_const = 0.5*mat_properties_dict["mass"][particle_id]**(-2)
+
+    for j in range(num_atoms):
+
+            LxS_val = mat_properties_dict["LxS_list"][particle_id][j]
+
+        for alpha in range(3):
+            for beta in range(3):
+                for chi in range(3):
+
+                    val[j] += overall_const*(
+                                    LeviCivita(alpha, beta, chi)*LxS_val[alpha][beta]*q_vec[chi]*q_vec
+                            )
+
+    return val
+
+def V15a_11(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
+
+    val = np.zeros((num_atoms, 3, 3), dtype=complex)
+
+    overall_const = -mat_properties_dict["mass"][particle_id]**(-2)
+
+    for j in range(num_atoms):
+
+        S_val = mat_properties_dict["S_list"][particle_id][j]
+
+        for alpha in range(3):
+            for beta in range(3):
+                for chi in range(3):
+
+                    val[j][alpha][beta] += overall_const*(
+                                    LeviCivita(beta, chi, alpha)*q_vec[chi]*np.dot(q_vec,S_val)
+                            )
+
+    return val
+
+def V15b_01(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
+
+    val = np.zeros((num_atoms, 3), dtype=complex)
+
+    overall_const = -0.5*1j*mat_properties_dict["mass"][particle_id]**(-3)
+
+    for j in range(num_atoms):
+
+            LxS_val = mat_properties_dict["LxS_list"][particle_id][j]
+
+            val[j] = overall_const*(
+                            np.dot(q_vec,q_vec)*np.matmul(LxS_val,q_vec) - q_vec*np.matmul(q_vec, np.matmul(LxS_val,q_vec))
+                    )
+
+    return val
+
 def zeros_00(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
 
     return np.zeros(num_atoms)
@@ -362,6 +537,54 @@ def V_terms_func(q_vec, op_id, exp_id, particle_id, num_atoms, mat_properties_di
 		"11":{
 			"00": zeros_00,
 			"01": V11_01,
+			"10": zeros_01,
+			"11": zeros_11
+		},
+		"12a":{
+			"00": zeros_00,
+			"01": V12a_01,
+			"10": zeros_01,
+			"11": V12a_11
+		},
+		"12b":{
+			"00": zeros_00,
+			"01": V12b_01,
+			"10": zeros_01,
+			"11": zeros_11
+		},
+		"13a":{
+			"00": zeros_00,
+			"01": V13a_01,
+			"10": zeros_01,
+			"11": V13a_11
+		},
+		"13b":{
+			"00": zeros_00,
+			"01": V13b_01,
+			"10": zeros_01,
+			"11": zeros_11
+		},
+		"14a":{
+			"00": zeros_00,
+			"01": V13a_01,
+			"10": zeros_01,
+			"11": V14a_11
+		},
+		"14b":{
+			"00": zeros_00,
+			"01": V14b_01,
+			"10": zeros_01,
+			"11": zeros_11
+		},
+		"15a":{
+			"00": zeros_00,
+			"01": zeros_01,
+			"10": zeros_01,
+			"11": V15a_11
+		},
+		"15b":{
+			"00": zeros_00,
+			"01": V15b_01,
 			"10": zeros_01,
 			"11": zeros_11
 		}

@@ -2,6 +2,10 @@
 
 *.DS_Store
 
+# inputs/material/*/FORCE_SETS
+# inputs/material/*/POSCAR
+# inputs/material/*/BORN
+
 __pycache__/
 *.py[cod]
 *$py.class

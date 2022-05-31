@@ -651,3 +651,39 @@ def total_V_func(non_zero_indices, q_vec, num_atoms, mat_properties_dict,
 		"10": total_V_10,
 		"11": total_V_11
 	}
+
+def cNe_func(non_zero_indices, q_vec, num_atoms, mat_properties_dict,
+					mass, spin, c_dict_full):
+
+	cNe_00 = 0
+	cNe_01 = np.zeros(3, dtype=complex)
+	cNe_11 = np.zeros((3, 3), dtype=complex)
+    
+    if ["1","e"] in non_zero_indices:
+        
+        cNe_00 += c_dict_full["1"]["e"]
+    
+    if ["5a","e"] in non_zero_indices:
+        
+        for alpha in range(3):
+            for beta in range(3):
+                for chi in range(3):
+        
+                    cNe_11[alpha][beta] += c_dict_full["5a"]["e"]*(1j/mat_properties_dict["mass"]["e"])*LeviCivita(beta, chi, alpha)*q_vec[chi]
+    
+    if ["8a","e"] in non_zero_indices:
+        
+        overall_const =
+        
+        cNe_01 += c_dict_full["8a"]["e"]*(-0.5)*q_vec/mass
+        cNe_11 += c_dict_full["8a"]["e"]*np.identity(3)
+    
+    if ["11","e"] in non_zero_indices:
+        
+        cNe_01 += c_dict_full["11"]["e"]*(1j/mat_properties_dict["mass"]["e"])*q_vec
+
+	return {
+		"00": cNe_00,
+		"01": cNe_01,
+		"11": cNe_11
+	}

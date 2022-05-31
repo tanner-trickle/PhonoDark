@@ -192,15 +192,20 @@ def calc_diff_rates_general(mass, q_XYZ_list, G_XYZ_list, jacob_list, physics_pa
                     
                     dw_val = np.zeros(phonopy_params['num_atoms'], dtype=complex)
                     pos_phase = np.zeros(phonopy_params['num_atoms'], dtype=complex)
+                    
                     q_dot_e = np.zeros(phonopy_params['num_atoms'], dtype=complex)
+                    q_dot_ZminusQ_dot_e = np.zeros(phonopy_params['num_atoms'], dtype=complex)
                     
                     for j in range(phonopy_params['num_atoms']):
                         
                         dw_val[j] = np.dot(q_vec, np.matmul(W_tensor[j], q_vec))
-                        
                         pos_phase[j] = (1j)*np.dot(G_XYZ_list[q], phonopy_params['eq_positions_XYZ'][j])
 
                         q_dot_e[j] = np.dot(q_vec, ph_eigenvectors[q][nu][j])
+                        
+                        if born_cor:
+                            q_dot_ZminusQ_dot_e[j] = np.matmul(q_vec, np.matmul(phonopy_params['born'][j], ph_eigenvectors[q][nu][j]))
+                                                        - (mat_properties_dict['N_list']['p'][j]-mat_properties_dict['N_list']['e'][j])*q_dot_e[j]
                         
                     for j in range(phonopy_params['num_atoms']):
                         

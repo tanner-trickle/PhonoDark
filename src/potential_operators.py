@@ -380,7 +380,7 @@ def V14b_01(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
 
     for j in range(num_atoms):
 
-            LxS_val = mat_properties_dict["LxS_list"][particle_id][j]
+        LxS_val = mat_properties_dict["LxS_list"][particle_id][j]
 
         for alpha in range(3):
             for beta in range(3):

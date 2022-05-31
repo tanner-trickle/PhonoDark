@@ -137,6 +137,7 @@ def calc_diff_rates_general(mass, q_XYZ_list, G_XYZ_list, jacob_list, physics_pa
     
     Fmed_power    = physics_parameters['Fmed_power']
     threshold     = physics_parameters['threshold']
+    born_cor      = physics_parameters.get('born_cor')
 
     m_cell = sum(phonopy_params['atom_masses'])
 
@@ -178,24 +179,36 @@ def calc_diff_rates_general(mass, q_XYZ_list, G_XYZ_list, jacob_list, physics_pa
                 v_star_val = vel_g_function_integrals.v_star_func(q_vec, energy_diff, mass, vE_vec)
                 v_minus_val = np.abs(v_star_val)
 
-                g0_val = vel_g_function_integrals.g0_func_opt(q_vec, energy_diff, mass, 
-                                            vE_vec, v_minus_val)
-                g1_vec = vel_g_function_integrals.g1_func_opt(q_vec, energy_diff, mass, vE_vec,
-                                            g0_val, v_star_val)
-                g2_tens = vel_g_function_integrals.g2_func_opt(q_vec, energy_diff, mass, vE_vec,
-                                            v_minus_val, g0_val, g1_vec)
-     
-                bin_num = math.floor((energy_diff-threshold)/energy_bin_width)
-                
                 if v_minus_val < const.VESC:
 
+                    g0_val = vel_g_function_integrals.g0_func_opt(q_vec, energy_diff, mass,
+                                                vE_vec, v_minus_val)
+                    g1_vec = vel_g_function_integrals.g1_func_opt(q_vec, energy_diff, mass, vE_vec,
+                                                g0_val, v_star_val)
+                    g2_tens = vel_g_function_integrals.g2_func_opt(q_vec, energy_diff, mass, vE_vec,
+                                                v_minus_val, g0_val, g1_vec)
+     
+                    bin_num = math.floor((energy_diff-threshold)/energy_bin_width)
+                    
+                    dw_val = np.zeros(phonopy_params['num_atoms'], dtype=complex)
+                    pos_phase = np.zeros(phonopy_params['num_atoms'], dtype=complex)
+                    q_dot_e = np.zeros(phonopy_params['num_atoms'], dtype=complex)
+                    
                     for j in range(phonopy_params['num_atoms']):
                         
-                        dw_val_j = np.dot(q_vec, np.matmul(W_tensor[j], q_vec))
+                        dw_val[j] = np.dot(q_vec, np.matmul(W_tensor[j], q_vec))
                         
-                        pos_phase_j = (1j)*np.dot(G_XYZ_list[q], phonopy_params['eq_positions_XYZ'][j])
+                        pos_phase[j] = (1j)*np.dot(G_XYZ_list[q], phonopy_params['eq_positions_XYZ'][j])
 
-                        q_dot_e_star_j = np.dot(q_vec, np.conj(ph_eigenvectors[q][nu][j]))
+                        q_dot_e[j] = np.dot(q_vec, ph_eigenvectors[q][nu][j])
+                        
+                    for j in range(phonopy_params['num_atoms']):
+                        
+                        dw_val_j = dw_val[j]
+                        pos_phase_j = pos_phase[j]
+                        
+                        q_dot_e_star_j =np.conj(q_dot_e[j])
+                        
                         V00_j = total_V_func_eval["00"][j]
                         V01_j = total_V_func_eval["01"][j]
                         V10_j = total_V_func_eval["10"][j]
@@ -203,10 +216,10 @@ def calc_diff_rates_general(mass, q_XYZ_list, G_XYZ_list, jacob_list, physics_pa
                         
                         for jp in range(phonopy_params['num_atoms']):
 
-                            dw_val_jp = np.dot(q_vec, np.matmul(W_tensor[jp], q_vec))
-                            pos_phase_jp = (1j)*np.dot(G_XYZ_list[q], phonopy_params['eq_positions_XYZ'][jp])
+                            dw_val_jp = dw_val[jp]
+                            pos_phase_jp = pos_phase[jp]
 
-                            q_dot_e_jp = np.dot(q_vec, ph_eigenvectors[q][nu][jp])
+                            q_dot_e_jp = q_dot_e[jp]
 
                             V00_jp = total_V_func_eval["00"][jp]
                             V01_jp = total_V_func_eval["01"][jp]
@@ -251,6 +264,8 @@ def calc_diff_rates_general(mass, q_XYZ_list, G_XYZ_list, jacob_list, physics_pa
                                 *F_prop_val**2\
                                 *(g0_rate + g1_rate + g2_rate)
                                 )
+                            
+                            #if born_cor:
 
                             binned_rate[nu] += delta_rate
                             diff_rate[bin_num] += delta_rate

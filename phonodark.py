@@ -115,7 +115,12 @@ if options['m'] != '' and options['p'] != '' and options['n'] != '':
         print('    DM mass : '+str(phys_mod.dm_properties_dict['mass_list'])+'\n')
         print('    d log V / d log q : '+str(phys_mod.physics_parameters['power_V'])+'\n')
         print('    - d log F_med / d log q : '+str(phys_mod.physics_parameters['Fmed_power'])+'\n')
-        print('    Time of day : '+str(phys_mod.physics_parameters['times'])+'\n')
+        if 'vE' in phys_mod.physics_parameters:
+            print('    vE : '+str(phys_mod.physics_parameters['vE'])+'\n')
+        elif 'times' in phys_mod.physics_parameters:
+            print('    Time of day : '+str(phys_mod.physics_parameters['times'])+'\n')
+        else:
+            print('    vE : VE * (0, 0, 1)\n') # default vE along z direction
         print('    Threshold : '+str(phys_mod.physics_parameters['threshold'])+' eV\n')
         print('    c coefficients : '+str(list(phys_mod.c_dict.keys()))+'\n')
         print('  Numerics :\n')
@@ -144,7 +149,12 @@ if options['m'] != '' and options['p'] != '' and options['n'] != '':
         
         # number of jobs to do
         num_masses    = len(phys_mod.dm_properties_dict['mass_list'])
-        num_times     = len(phys_mod.physics_parameters['times'])
+        if 'vE' in phys_mod.physics_parameters:
+            num_times = len(phys_mod.physics_parameters['vE'])
+        elif 'times' in phys_mod.physics_parameters:
+            num_times = len(phys_mod.physics_parameters['times'])
+        else:
+            num_times = 1
 
         num_jobs = num_masses*num_times
         print('  Total number of jobs : '+str(num_jobs))
@@ -221,7 +231,14 @@ if options['m'] != '' and options['p'] != '' and options['n'] != '':
             job_id = job_list_recv[job]
 
             mass = phys_mod.dm_properties_dict['mass_list'][int(job_id[0])]
-            time = phys_mod.physics_parameters['times'][int(job_id[1])]
+            
+            if 'vE' in phys_mod.physics_parameters:
+                vE_vec = phys_mod.physics_parameters['vE'][int(job_id[1])]
+            elif 'times' in phys_mod.physics_parameters:
+                time = phys_mod.physics_parameters['times'][int(job_id[1])]
+                vE_vec = physics.create_vE_vec(time)
+            else:
+                vE_vec = physics.create_vE_vec(0.0)
 
 
             if first_job and proc_id == root_process:
@@ -252,7 +269,6 @@ if options['m'] != '' and options['p'] != '' and options['n'] != '':
                 print('  Done loading data to PHONOPY\n')
 
             # generate q mesh
-            vE_vec = physics.create_vE_vec(time)
 
             delta = 2*phys_mod.physics_parameters['power_V'] - 2*phys_mod.physics_parameters['Fmed_power']
 

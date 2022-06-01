@@ -179,6 +179,21 @@ def calc_diff_rates_general(mass, q_XYZ_list, G_XYZ_list, jacob_list, physics_pa
             cNe00 = cNe_func_eval["00"]
             cNe01 = cNe_func_eval["01"]
             cNe11 = cNe_func_eval["11"]
+            
+            # cNe^2 terms, to be multiplied by velocity integrals g0, g1, g2
+            
+            cNe_sq_0 = (cNe00*np.conj(cNe00)
+                            + ((spin*(spin+1))/3.0)*(
+                                np.dot(cNe01, np.conj(cNe01))
+                            )
+                        )
+                        
+            cNe_sq_1 = ((spin*(spin+1))/3.0)*(
+                                    np.matmul(np.conj(cNe11), cNe01) +
+                                    np.matmul(cNe11, np.conj(cNe01))
+                                    )
+            
+            cNe_sq_2 = ((spin*(spin+1))/3.0)*np.matmul(np.conj(cNe11), cNe11.T)
         
         for nu in range(phonopy_params['num_modes']):
 
@@ -206,6 +221,10 @@ def calc_diff_rates_general(mass, q_XYZ_list, G_XYZ_list, jacob_list, physics_pa
                     q_dot_e = np.zeros(phonopy_params['num_atoms'], dtype=complex)
                     q_dot_ZminusQ_dot_e = np.zeros(phonopy_params['num_atoms'], dtype=complex)
                     
+                    VxcNe_0 = np.zeros(phonopy_params['num_atoms'], dtype=complex)
+                    VxcNe_1 = np.zeros((phonopy_params['num_atoms'],3), dtype=complex)
+                    VxcNe_2 = np.zeros((phonopy_params['num_atoms'],3,3), dtype=complex)
+                    
                     prefactor = 0.5*(const.RHO_DM/mass)\
                                 *(1.0/m_cell)*(2*const.PI)**(-3)*jacob_list[q]\
                                 *(1.0/(n_a*n_b*n_c))*(1.0/energy_diff)\
@@ -222,6 +241,25 @@ def calc_diff_rates_general(mass, q_XYZ_list, G_XYZ_list, jacob_list, physics_pa
                         if born_cor:
                             q_dot_ZminusQ_dot_e[j] = np.matmul(q_vec, np.matmul(phonopy_params['born'][j], ph_eigenvectors[q][nu][j]))\
                                                         - (mat_properties_dict['N_list']['p'][j]-mat_properties_dict['N_list']['e'][j])*q_dot_e[j]
+
+                            # cross terms between V_j^* and cNe, to be multiplied by velocity integrals g0, g1, g2
+                            
+                            VxcNe_0[j] = (
+                                    cNe00*np.conj(total_V_func_eval["00"][j])
+                                    + ((spin*(spin+1))/3.0)*(
+                                            np.dot(cNe01, np.conj(total_V_func_eval["01"][j]))
+                                        )
+                                    )
+                            
+                            VxcNe_1[j] = (
+                                            cNe00*np.conj(total_V_func_eval["10"][j])
+                                            + ((spin*(spin+1))/3.0)*(
+                                                np.matmul(np.conj(total_V_func_eval["11"][j]), cNe01) +
+                                                np.matmul(cNe11, np.conj(total_V_func_eval["01"][j]))
+                                                )
+                                        )
+                                        
+                            VxcNe_2[j] = ((spin*(spin+1))/3.0)*np.matmul(np.conj(total_V_func_eval["11"][j]), cNe11.T)
                         
                     for j in range(phonopy_params['num_atoms']):
                         
@@ -285,85 +323,22 @@ def calc_diff_rates_general(mass, q_XYZ_list, G_XYZ_list, jacob_list, physics_pa
                             
                             if born_cor:
                             
-                                g0_rate = g0_val*(
-                                    cNe00*np.conj(V00_jp)
-                                    + ((spin*(spin+1))/3.0)*(
-                                            np.dot(cNe01, np.conj(V01_jp))
-                                        )
-                                    )
-                                
-                                g1_rate = np.dot(g1_vec,
-                                        (
-                                            cNe00*np.conj(V10_jp)
-                                            + ((spin*(spin+1))/3.0)*(
-                                                np.matmul(np.conj(V11_jp), cNe01) +
-                                                np.matmul(cNe11, np.conj(V01_jp))
-                                                )
-                                        )
-                                    )
-
-                                g2_rate = (
-                                    ((spin*(spin+1))/3.0)*np.trace(
-                                            np.matmul(
-                                                    cNe11.T, np.matmul(g2_tens, np.conj(V11_jp))
-                                                )
-                                        )
-                                    )
+                                g0_rate = g0_val*VxcNe_0[jp]
+                                g1_rate = np.dot(g1_vec, VxcNe_1[jp])
+                                g2_rate = np.trace(np.matmul(g2_tens, VxcNe_2[jp]))
                                 
                                 delta_rate -= (q_dot_ZminusQ_dot_e_star_j*q_dot_e_jp)*(g0_rate + g1_rate + g2_rate)
                                 
                                 
-                                g0_rate = g0_val*(
-                                    V00_j*np.conj(cNe00)
-                                    + ((spin*(spin+1))/3.0)*(
-                                            np.dot(V01_j, np.conj(cNe01))
-                                        )
-                                    )
-
-                                g1_rate = np.dot(g1_vec,
-                                        (
-                                            np.conj(cNe00)*V10_j
-                                            + ((spin*(spin+1))/3.0)*(
-                                                np.matmul(np.conj(cNe11), V01_j) +
-                                                np.matmul(V11_j, np.conj(cNe01))
-                                                )
-                                        )
-                                    )
-
-                                g2_rate = (
-                                    ((spin*(spin+1))/3.0)*np.trace(
-                                            np.matmul(
-                                                    V11_j.T, np.matmul(g2_tens, np.conj(cNe11))
-                                                )
-                                        )
-                                    )
+                                g0_rate = g0_val*np.conj(VxcNe_0[j])
+                                g1_rate = np.dot(g1_vec, np.conj(VxcNe_1[j]))
+                                g2_rate = np.trace(np.matmul(g2_tens, np.conj(VxcNe_2[j])))
 
                                 delta_rate -= (q_dot_e_star_j*q_dot_ZminusQ_dot_e_jp)*(g0_rate + g1_rate + g2_rate)
                                 
-                                
-                                g0_rate = g0_val*(
-                                    cNe00*np.conj(cNe00)
-                                    + ((spin*(spin+1))/3.0)*(
-                                            np.dot(cNe01, np.conj(cNe01))
-                                        )
-                                    )
-
-                                g1_rate = np.dot(g1_vec,
-                                        (
-                                            ((spin*(spin+1))/3.0)*(
-                                                np.matmul(np.conj(cNe11), cNe01) +
-                                                np.matmul(cNe11, np.conj(cNe01))
-                                                )
-                                        )
-                                    )
-
-                                g2_rate = (
-                                    ((spin*(spin+1))/3.0)*np.trace(
-                                            np.matmul(
-                                                    cNe11.T, np.matmul(g2_tens, np.conj(cNe11))
-                                                )
-                                        )
-                                    )
+                                g0_rate = g0_val*cNe_sq_0
+                                g1_rate = np.dot(g1_vec, cNe_sq_1)
+                                g2_rate = np.trace(np.matmul(g2_tens, cNe_sq_2))
 
                                 delta_rate += (q_dot_ZminusQ_dot_e_star_j*q_dot_ZminusQ_dot_e_jp)*(g0_rate + g1_rate + g2_rate)
 

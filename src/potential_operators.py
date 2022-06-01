@@ -655,9 +655,9 @@ def total_V_func(non_zero_indices, q_vec, num_atoms, mat_properties_dict,
 def cNe_func(non_zero_indices, q_vec, num_atoms, mat_properties_dict,
 					mass, spin, c_dict_full):
 
-	cNe_00 = 0
-	cNe_01 = np.zeros(3, dtype=complex)
-	cNe_11 = np.zeros((3, 3), dtype=complex)
+    cNe_00 = 0
+    cNe_01 = np.zeros(3, dtype=complex)
+    cNe_11 = np.zeros((3, 3), dtype=complex)
     
     if ["1","e"] in non_zero_indices:
         
@@ -673,8 +673,6 @@ def cNe_func(non_zero_indices, q_vec, num_atoms, mat_properties_dict,
     
     if ["8a","e"] in non_zero_indices:
         
-        overall_const =
-        
         cNe_01 += c_dict_full["8a"]["e"]*(-0.5)*q_vec/mass
         cNe_11 += c_dict_full["8a"]["e"]*np.identity(3)
     
@@ -682,8 +680,8 @@ def cNe_func(non_zero_indices, q_vec, num_atoms, mat_properties_dict,
         
         cNe_01 += c_dict_full["11"]["e"]*(1j/mat_properties_dict["mass"]["e"])*q_vec
 
-	return {
-		"00": cNe_00,
-		"01": cNe_01,
-		"11": cNe_11
-	}
+    return {
+        "00": cNe_00,
+        "01": cNe_01,
+        "11": cNe_11
+    }

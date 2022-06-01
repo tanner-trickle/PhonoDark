@@ -8,18 +8,15 @@ import src.constants as const
 
 #################
 
-# a flag to ignore screening effects
-include_screen = True
-
 # Create the list of masses to compute for
 # input_masses = [10**6, 10**7, 10**8, 10**9, 10**10]
 
 input_masses = []
 
 log_start_mass = 3
-log_end_mass = 10
+log_end_mass = 7
 
-n_masses = 100
+n_masses = 80
 
 for i in range(n_masses):
     log_m = log_start_mass + (log_end_mass - log_start_mass)*(i/(n_masses - 1))
@@ -44,7 +41,9 @@ physics_parameters = {
         'power_V'   : 0.,
         # flag to compute for a specific model
         # SI computes using the algorithm presented in 1910.08092
-        'special_model': 'SI',
+        #'special_model': 'SI',
+        # include Born - bare charge correction piece
+        'born_cor'  : True
 }
 
 dm_properties_dict = {
@@ -64,56 +63,57 @@ dm_properties_dict = {
 """
 
 c_dict = {
-	1: {
+	"1": {
             "e": 1,
             "p": -1,
-            "n": 0
+            "n": 0,
+            "screened": True
 	},
-	3: {
-            "e": 0,
-            "p": 0,
-            "n": 0
-	},
-	4: {
-            "e": 0,
-            "p": 0,
-            "n": 0
-	},
-	5: {
-            "e": 0,
-            "p": 0,
-            "n": 0
-	},
-	6: {
-            "e": 0,
-            "p": 0,
-            "n": 0
-	},
-	7: {
-            "e": 0,
-            "p": 0,
-            "n": 0
-	},
-	8: {
-            "e": 0,
-            "p": 0,
-            "n": 0
-	},
-	9: {
-            "e": 0,
-            "p": 0,
-            "n": 0
-	},
-	10: {
-            "e": 0,
-            "p": 0,
-            "n": 0
-	},
-	11: {
-            "e": 0,
-            "p": 0,
-            "n": 0
-	},
+#	3: {
+#            "e": 0,
+#            "p": 0,
+#            "n": 0
+#	},
+#	4: {
+#            "e": 0,
+#            "p": 0,
+#            "n": 0
+#	},
+#	5: {
+#            "e": 0,
+#            "p": 0,
+#            "n": 0
+#	},
+#	6: {
+#            "e": 0,
+#            "p": 0,
+#            "n": 0
+#	},
+#	7: {
+#            "e": 0,
+#            "p": 0,
+#            "n": 0
+#	},
+#	8: {
+#            "e": 0,
+#            "p": 0,
+#            "n": 0
+#	},
+#	9: {
+#            "e": 0,
+#            "p": 0,
+#            "n": 0
+#	},
+#	10: {
+#            "e": 0,
+#            "p": 0,
+#            "n": 0
+#	},
+#	11: {
+#            "e": 0,
+#            "p": 0,
+#            "n": 0
+#	},
 }
 
 
@@ -141,54 +141,54 @@ def c_dict_form(op_id, particle_id, q_vec, mass, spin):
         return 1.0
 
     return {
-            1: {
+            "1": {
                 "e": one_func,
                 "p": one_func,
                 "n": one_func
             },
-            3: {
-                "e": one_func,
-                "p": one_func,
-                "n": one_func
-            },
-            4: {
-                "e": one_func,
-                "p": one_func,
-                "n": one_func
-            },
-            5: {
-                "e": one_func,
-                "p": one_func,
-                "n": one_func
-            },
-            6: {
-                "e": one_func,
-                "p": one_func,
-                "n": one_func
-            },
-            7: {
-                "e": one_func,
-                "p": one_func,
-                "n": one_func
-            },
-            8: {
-                "e": one_func,
-                "p": one_func,
-                "n": one_func
-            },
-            9: {
-                "e": one_func,
-                "p": one_func,
-                "n": one_func
-            },
-            10: {
-                "e": one_func,
-                "p": one_func,
-                "n": one_func
-            },
-            11: {
-                "e": one_func,
-                "p": one_func,
-                "n": one_func
-            },
+#            3: {
+#                "e": one_func,
+#                "p": one_func,
+#                "n": one_func
+#            },
+#            4: {
+#                "e": one_func,
+#                "p": one_func,
+#                "n": one_func
+#            },
+#            5: {
+#                "e": one_func,
+#                "p": one_func,
+#                "n": one_func
+#            },
+#            6: {
+#                "e": one_func,
+#                "p": one_func,
+#                "n": one_func
+#            },
+#            7: {
+#                "e": one_func,
+#                "p": one_func,
+#                "n": one_func
+#            },
+#            8: {
+#                "e": one_func,
+#                "p": one_func,
+#                "n": one_func
+#            },
+#            9: {
+#                "e": one_func,
+#                "p": one_func,
+#                "n": one_func
+#            },
+#            10: {
+#                "e": one_func,
+#                "p": one_func,
+#                "n": one_func
+#            },
+#            11: {
+#                "e": one_func,
+#                "p": one_func,
+#                "n": one_func
+#            },
         }[op_id][particle_id](q_vec, mass, spin)

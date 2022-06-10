@@ -14,7 +14,7 @@
 """
 
 import numpy as np
-from sympy import LeviCivita
+#from sympy import LeviCivita
 
 import src.constants as const
 
@@ -92,14 +92,22 @@ def V5a_11(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
     for j in range(num_atoms):
 
         N_val = mat_properties_dict["N_list"][particle_id][j]
+        
+        val[j][0][1] = overall_const*N_val*q_vec[2]
+        val[j][1][2] = overall_const*N_val*q_vec[0]
+        val[j][2][0] = overall_const*N_val*q_vec[1]
+        
+        val[j][1][0] = -val[j][0][1]
+        val[j][2][1] = -val[j][1][2]
+        val[j][0][2] = -val[j][2][0]
 
-        for alpha in range(3):
-            for beta in range(3):
-                for chi in range(3):
-
-                    val[j][alpha][beta] += overall_const*(
-                                    N_val*LeviCivita(beta, chi, alpha)*q_vec[chi]
-                            )
+#        for alpha in range(3):
+#            for beta in range(3):
+#                for chi in range(3):
+#
+#                    val[j][alpha][beta] += overall_const*(
+#                                    N_val*LeviCivita(beta, chi, alpha)*q_vec[chi]
+#                            )
 
     return val 
 
@@ -146,14 +154,20 @@ def V7b_00(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
     for j in range(num_atoms):
 
         LxS_val = mat_properties_dict["LxS_list"][particle_id][j]
+        
+        val[j] = overall_const*(
+                            (LxS_val[0][1]-LxS_val[1][0])*q_vec[2]
+                            +(LxS_val[1][2]-LxS_val[2][1])*q_vec[0]
+                            +(LxS_val[2][0]-LxS_val[0][2])*q_vec[1]
+                    )
 
-        for alpha in range(3):
-            for beta in range(3):
-                for chi in range(3):
-
-                    val[j] += overall_const*(
-                                    LeviCivita(alpha, beta, chi)*LxS_val[alpha][beta]*q_vec[chi]
-                            )
+#        for alpha in range(3):
+#            for beta in range(3):
+#                for chi in range(3):
+#
+#                    val[j] += overall_const*(
+#                                    LeviCivita(alpha, beta, chi)*LxS_val[alpha][beta]*q_vec[chi]
+#                            )
 
     return val
 
@@ -278,14 +292,22 @@ def V12a_11(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
     for j in range(num_atoms):
 
         S_val = mat_properties_dict["S_list"][particle_id][j]
+        
+        val[j][0][1] = overall_const*S_val[2]
+        val[j][1][2] = overall_const*S_val[0]
+        val[j][2][0] = overall_const*S_val[1]
+        
+        val[j][1][0] = -val[j][0][1]
+        val[j][2][1] = -val[j][1][2]
+        val[j][0][2] = -val[j][2][0]
 
-        for alpha in range(3):
-            for beta in range(3):
-                for chi in range(3):
-
-                    val[j][alpha][beta] += overall_const*(
-                                    LeviCivita(beta, chi, alpha)*S_val[chi]
-                            )
+#        for alpha in range(3):
+#            for beta in range(3):
+#                for chi in range(3):
+#
+#                    val[j][alpha][beta] += overall_const*(
+#                                    LeviCivita(beta, chi, alpha)*S_val[chi]
+#                            )
 
     return val
 
@@ -381,14 +403,20 @@ def V14b_01(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
     for j in range(num_atoms):
 
         LxS_val = mat_properties_dict["LxS_list"][particle_id][j]
+        
+        val[j] = overall_const*(
+                            (LxS_val[0][1]-LxS_val[1][0])*q_vec[2]
+                            +(LxS_val[1][2]-LxS_val[2][1])*q_vec[0]
+                            +(LxS_val[2][0]-LxS_val[0][2])*q_vec[1]
+                    ) *q_vec
 
-        for alpha in range(3):
-            for beta in range(3):
-                for chi in range(3):
-
-                    val[j] += overall_const*(
-                                    LeviCivita(alpha, beta, chi)*LxS_val[alpha][beta]*q_vec[chi]*q_vec
-                            )
+#        for alpha in range(3):
+#            for beta in range(3):
+#                for chi in range(3):
+#
+#                    val[j] += overall_const*(
+#                                    LeviCivita(alpha, beta, chi)*LxS_val[alpha][beta]*q_vec[chi]*q_vec
+#                            )
 
     return val
 
@@ -402,13 +430,21 @@ def V15a_11(q_vec, particle_id, num_atoms, mat_properties_dict, mass, spin):
 
         S_val = mat_properties_dict["S_list"][particle_id][j]
 
-        for alpha in range(3):
-            for beta in range(3):
-                for chi in range(3):
+        val[j][0][1] = overall_const*q_vec[2]*np.dot(q_vec,S_val)
+        val[j][1][2] = overall_const*q_vec[0]*np.dot(q_vec,S_val)
+        val[j][2][0] = overall_const*q_vec[1]*np.dot(q_vec,S_val)
+        
+        val[j][1][0] = -val[j][0][1]
+        val[j][2][1] = -val[j][1][2]
+        val[j][0][2] = -val[j][2][0]
 
-                    val[j][alpha][beta] += overall_const*(
-                                    LeviCivita(beta, chi, alpha)*q_vec[chi]*np.dot(q_vec,S_val)
-                            )
+#        for alpha in range(3):
+#            for beta in range(3):
+#                for chi in range(3):
+#
+#                    val[j][alpha][beta] += overall_const*(
+#                                    LeviCivita(beta, chi, alpha)*q_vec[chi]*np.dot(q_vec,S_val)
+#                            )
 
     return val
 
@@ -665,11 +701,19 @@ def cNe_func(non_zero_indices, q_vec, num_atoms, mat_properties_dict,
     
     if ["5a","e"] in non_zero_indices:
         
-        for alpha in range(3):
-            for beta in range(3):
-                for chi in range(3):
+        cNe_11[0][1] = c_dict_full["5a"]["e"]*(1j/mat_properties_dict["mass"]["e"])*q_vec[2]
+        cNe_11[1][2] = c_dict_full["5a"]["e"]*(1j/mat_properties_dict["mass"]["e"])*q_vec[0]
+        cNe_11[2][0] = c_dict_full["5a"]["e"]*(1j/mat_properties_dict["mass"]["e"])*q_vec[1]
         
-                    cNe_11[alpha][beta] += c_dict_full["5a"]["e"]*(1j/mat_properties_dict["mass"]["e"])*LeviCivita(beta, chi, alpha)*q_vec[chi]
+        cNe_11[1][0] = -cNe_11[0][1]
+        cNe_11[2][1] = -cNe_11[1][2]
+        cNe_11[0][2] = -cNe_11[2][0]
+        
+#        for alpha in range(3):
+#            for beta in range(3):
+#                for chi in range(3):
+#
+#                    cNe_11[alpha][beta] += c_dict_full["5a"]["e"]*(1j/mat_properties_dict["mass"]["e"])*LeviCivita(beta, chi, alpha)*q_vec[chi]
     
     if ["8a","e"] in non_zero_indices:
         

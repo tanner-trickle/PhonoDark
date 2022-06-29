@@ -41,49 +41,6 @@ def run_phonopy(phonon_file, k_mesh):
 
     return [eigenvectors, omega]
 
-#def load_phonopy_file(material, io_parameters, supercell, poscar_path, force_sets_path, born_path,
-#                        proc_id = 0, root_process = 0):
-#
-#
-#    if os.path.exists(io_parameters['material_data_folder']+material+'/BORN'):
-#
-#        born_exists = True
-#
-#    else:
-#
-#        if proc_id == root_process:
-#
-#            print('\tThere is no BORN file for '+material)
-#            print()
-#
-#        born_exists = False
-#
-#    if born_exists:
-#
-#        phonon_file = phonopy.load(
-#                            supercell_matrix    = supercell,
-#                            primitive_matrix    = 'auto',
-#                            unitcell_filename   = poscar_path,
-#                            force_sets_filename = force_sets_path,
-#                            is_nac              = True,
-#                            born_filename       = born_path
-#                           )
-#
-#    else:
-#
-#        if proc_id == root_process:
-#
-#            print('\tNo BORN file found for : '+material)
-#
-#        phonon_file = phonopy.load(
-#                            supercell_matrix    = supercell_data[material],
-#                            primitive_matrix    = 'auto',
-#                            unitcell_filename   = poscar_path,
-#                            force_sets_filename = force_sets_path
-#                           )
-#
-#    return [phonon_file, born_exists]
-
 
 def get_phonon_file_data(phonon_file, born_exists):
     """
@@ -115,10 +72,14 @@ def get_phonon_file_data(phonon_file, born_exists):
 
             dielectric - high frequency dielectric
 
+            symbols - Chemical symbols of each lattice ion
+
     """
 
     num_atoms = phonon_file.primitive.get_number_of_atoms()
     num_modes = 3*num_atoms 
+
+    symbols = phonon_file.primitive.symbols
 
     A_list = phonon_file.primitive.get_masses()
     Z_list = phonon_file.primitive.get_atomic_numbers()
@@ -165,4 +126,5 @@ def get_phonon_file_data(phonon_file, born_exists):
             'A_list': A_list,
             'Z_list': Z_list,
             'born': born,
-            'dielectric': dielectric}
+            'dielectric': dielectric, 
+            'symbols': symbols}

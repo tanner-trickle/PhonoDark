@@ -2,6 +2,8 @@
     Natural (eV) units are used throughout unless otherwise specified
 """
 
+import numpy as np
+
 import src.constants as const
 
 #################
@@ -9,23 +11,23 @@ import src.constants as const
 # Create the list of masses to compute for
 # input_masses = [10**6, 10**7, 10**8, 10**9, 10**10]
 
-input_masses = []
-
-log_start_mass = 3
-log_end_mass = 7
-
-n_masses = 80
-
-for i in range(n_masses):
-    log_m = log_start_mass + (log_end_mass - log_start_mass)*(i/(n_masses - 1))
-    input_masses.append(10**log_m)
-
-# Include all even multiples of 10 are computed for
-#for i in range(log_end_mass - log_start_mass + 1):
-#    input_masses.append(10**(i + log_start_mass))
-
-input_masses = list(dict.fromkeys(input_masses))
-input_masses.sort()
+# input_masses = []
+#
+# log_start_mass = 3
+# log_end_mass = 7
+#
+# n_masses = 80
+#
+# for i in range(n_masses):
+#     log_m = log_start_mass + (log_end_mass - log_start_mass)*(i/(n_masses - 1))
+#     input_masses.append(10**log_m)
+#
+# # Include all even multiples of 10 are computed for
+# #for i in range(log_end_mass - log_start_mass + 1):
+# #    input_masses.append(10**(i + log_start_mass))
+#
+# input_masses = list(dict.fromkeys(input_masses))
+# input_masses.sort()
 
 ##################
 
@@ -51,7 +53,7 @@ physics_parameters = {
 
 dm_properties_dict = {
     'spin': 0.5,
-    'mass_list': input_masses,
+    'mass_list': [ 10**m for m in np.linspace(6, 10, 5) ]
 }
 
 """

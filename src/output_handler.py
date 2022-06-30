@@ -53,9 +53,6 @@ def save_output(filename, inputs, binned_rate, version_number):
     # computed data
     out_f.create_group('data')
 
-    out_f.create_group('data/binned_rate')
-    out_f.create_group('data/total_rate')
-
     for m in range(len(binned_rate)):
         for v in range(len(binned_rate[0])):
 

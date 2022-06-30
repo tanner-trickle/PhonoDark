@@ -1,6 +1,6 @@
 io_parameters = {
         'output_folder'       : 'data',
-        'output_filename_extra' : ''
+        'output_filename_extra' : 'test_4x4x4'
 }
 
 numerics_parameters = {
@@ -24,6 +24,8 @@ numerics_parameters = {
         'n_DW_z'          : 4,
         # width of the energy bins
         'energy_bin_width': 10**(-3),
+        # number of energy bins
+        'n_E_bins': 100,
         # option to automatically cut off the q integral when q is much greater
         # than the Debye Waller factor
         'q_cut'           : True,

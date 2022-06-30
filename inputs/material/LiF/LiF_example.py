@@ -15,7 +15,7 @@ material = 'LiF'
 
 # number of atoms in the primitive cell
 num_atoms = 2
-mat_properties_dict = {
+properties_dict = {
         # dimension of supercell used in DFT calculation
         "supercell_dim": [2., 2., 2.], 
 	"mass":{
@@ -42,7 +42,7 @@ mat_properties_dict = {
 		"n": np.zeros(num_atoms)
 	},
 	"S_list": {
-		"e": np.zeros((num_atoms, 3)),
+		"e": np.ones((num_atoms, 3)),
 		"p": np.zeros((num_atoms, 3)),
 		"n": np.zeros((num_atoms, 3))
 	},

@@ -1,6 +1,8 @@
 # PhonoDark: Dark Matter - Phonon Scattering Rate Calculator
 
-**version: 1.1.0**
+**NOTE: THE DEVELOPMENT BRANCH IS IN ACTIVE DEVELOPMENT AND OUTPUT IS BEING TESTED FOR CONSISTENCY WITH v1.1.0**
+
+**version: 1.2.0**
 
 [**Home**](https://phonodark.caltech.edu)
 

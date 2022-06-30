@@ -9,7 +9,49 @@ import numpy as np
 import phonopy
 import pymatgen.core as pmgCore
 
-from src.phonopy_funcs import get_phonon_file_data
+from src.phonopy_funcs import get_phonon_file_data, run_phonopy
+
+def print_inputs(inputs):
+
+    print('Inputs :\n')
+    print('  Material :\n')
+    print('    Name : '+inputs['material']['name']+'\n')
+    print('    DFT supercell grid size : '+str(inputs['material']['supercell_dim'])+'\n')
+    print('    N : '+str(inputs['material']['properties']['N_list'])+'\n')
+    print('    S : '+str(inputs['material']['properties']['S_list'])+'\n')
+    print('    L : '+str(inputs['material']['properties']['L_list'])+'\n')
+    print('    LxS : '+str(inputs['material']['properties']['LxS_list'])+'\n')
+    print('  Physics Model :\n')
+    print('    DM spin : '+str(inputs['physics_model']['dm_properties']['spin'])+'\n')
+    print('    DM mass (eV) : '+str(inputs['physics_model']['dm_properties']['mass_list'])+'\n')
+    print('    d log V / d log q : '+str(inputs['physics_model']['physics_parameters']['power_V'])+'\n')
+    print('    - d log F_med / d log q : '+str(inputs['physics_model']['physics_parameters']['Fmed_power'])+'\n')
+    if 'vE' in inputs['physics_model']['physics_parameters']:
+        print('    vE : '+str(inputs['physics_model']['physics_parameters']['vE'])+'\n')
+    elif 'times' in inputs['physics_model']['physics_parameters']:
+        print('    Time of day : '+str(inputs['physics_model']['physics_parameters']['times'])+'\n')
+    else:
+        print('    vE : VE * (0, 0, 1)\n') # default vE along z direction
+    print('    Threshold : '+str(inputs['physics_model']['physics_parameters']['threshold'])+' eV\n')
+    print('    c coefficients : '+str(list(inputs['physics_model']['c_dict'].keys()))+'\n')
+    print('  Numerics :\n')
+    print('    Energy bin width : '+str(inputs['numerics']['numerics']['energy_bin_width'])+' eV\n')
+    print('    Number of energy bins (above threshold): '+str(inputs['numerics']['numerics']['n_E_bins']))
+    print('    N_a : '+str(inputs['numerics']['numerics']['n_a'])+'\n')
+    print('    N_b : '+str(inputs['numerics']['numerics']['n_b'])+'\n')
+    print('    N_c : '+str(inputs['numerics']['numerics']['n_c'])+'\n')
+    if inputs['numerics']['numerics']['special_mesh']:
+        print('    Special mesh : True\n')
+    else:
+        print('    power_a : '+str(inputs['numerics']['numerics']['power_a'])+'\n')
+        print('    power_b : '+str(inputs['numerics']['numerics']['power_b'])+'\n')
+        print('    power_c : '+str(inputs['numerics']['numerics']['power_c'])+'\n')
+    print('    q cut : '+str(inputs['numerics']['numerics']['q_cut'])+'\n')
+    print('    N_DW_x : '+str(inputs['numerics']['numerics']['n_DW_x'])+'\n')
+    print('    N_DW_y : '+str(inputs['numerics']['numerics']['n_DW_y'])+'\n')
+    print('    N_DW_z : '+str(inputs['numerics']['numerics']['n_DW_z'])+'\n')
+    print('------\n')
+
 
 def load_material_inputs(material_input_filename, proc_id, root_process):
     """
@@ -49,9 +91,12 @@ def load_material_inputs(material_input_filename, proc_id, root_process):
 
         n_e_list.append( n_p_list[s] - oxi_number )
 
-    S_list = {'e': np.zeros(n_atoms),
-                'p': np.zeros(n_atoms),
-                'n': np.zeros(n_atoms)}
+    N_list = {'e': np.array(n_e_list), 
+                'p': n_p_list, 
+                'n': n_n_list}
+    S_list = {'e': np.zeros((n_atoms, 3)),
+                'p': np.zeros((n_atoms, 3)),
+                'n': np.zeros((n_atoms, 3))}
     L_list = {'e': np.zeros((n_atoms, 3)),
                 'p': np.zeros((n_atoms, 3)),
                 'n': np.zeros((n_atoms, 3))}
@@ -59,7 +104,10 @@ def load_material_inputs(material_input_filename, proc_id, root_process):
                 'p': np.zeros((n_atoms, 3, 3)),
                 'n': np.zeros((n_atoms, 3, 3))}
 
-    if 'mat_mod.properties_dict' in locals():
+    # overwrite the variables if they're defined in the input file
+    if hasattr(mat_mod, 'properties_dict'):
+        if 'N_list' in mat_mod.properties_dict:
+            N_list = mat_mod.properties_dict['N_list']
         if 'S_list' in mat_mod.properties_dict:
             S_list = mat_mod.properties_dict['S_list']
 
@@ -69,24 +117,27 @@ def load_material_inputs(material_input_filename, proc_id, root_process):
         if 'LxS_list' in mat_mod.properties_dict:
             LxS_list = mat_mod.properties_dict['LxS_list']
 
+    [ph_eigenvectors, ph_omega] = run_phonopy(phonopy_config,
+                                            np.zeros((1, 3)))
+
+    # 'Debye-Waller' scale
+    q_DW = np.sqrt(np.amax(ph_omega)*np.amax(phonopy_config_info['atom_masses']))
+
     material_input_dict = {
                 'name': mat_mod.material, 
                 'supercell_dim': mat_mod.supercell_dim, 
-                'n_atoms': n_atoms, 
                 'properties': {
-                                'N_list': {
-                                    'e': np.array(n_e_list), 
-                                    'p': n_p_list, 
-                                    'n': n_n_list
-                                },
-                                'S_list': S_list,
-                                'L_list': L_list,
-                                'LxS_list': LxS_list
-                }
+                    'N_list': N_list,
+                    'S_list': S_list,
+                    'L_list': L_list,
+                    'LxS_list': LxS_list
+                },
+                'phonopy_config_info': phonopy_config_info,
+                'phonopy_config': phonopy_config,
+                'q_DW': q_DW
             }
 
     return material_input_dict
-
 
 def load_phonopy_configuration(supercell_dim, material_input_filename, proc_id, root_process):
     """
@@ -129,18 +180,57 @@ def load_phonopy_configuration(supercell_dim, material_input_filename, proc_id, 
 
     return phonopy_config, born_exists
 
+def load_physics_model_inputs(filename, proc_id, root_process):
+    cwd = os.getcwd()
+
+    phys_mod_input_mod_name = os.path.splitext(os.path.basename(filename))[0] 
+
+    # load the variables from the input file
+    phys_mod = import_file(phys_mod_input_mod_name, os.path.join(cwd, filename))
+
+    return {'physics_parameters': phys_mod.physics_parameters,
+            'dm_properties': phys_mod.dm_properties_dict,
+            'c_dict': phys_mod.c_dict, 
+            'c_dict_form':phys_mod.c_dict_form}
+
+def load_numerics_inputs(filename, proc_id, root_process):
+
+    cwd = os.getcwd()
+
+    numerics_mod_input_mod_name = os.path.splitext(os.path.basename(filename))[0] 
+
+    # load the variables from the input file
+    numerics_mod = import_file(numerics_mod_input_mod_name, os.path.join(cwd, filename))
+
+    return {'io_parameters': numerics_mod.io_parameters, 
+            'numerics': numerics_mod.numerics_parameters}
+
 def load_inputs(input_options, proc_id, root_process):
     """
         Load the input parameters from the relevant files.
     """
 
     material_input_filename = input_options['m']
+    physics_model_input_filename = input_options['p']
+    numerics_input_filename = input_options['n']
+
+    numerics_mod_input_name = os.path.splitext(os.path.basename(numerics_input_filename))[0] 
+    material_mod_input_name = os.path.splitext(os.path.basename(material_input_filename))[0] 
+    physics_model_mod_input_name = os.path.splitext(os.path.basename(physics_model_input_filename))[0] 
 
     material_input_dict = load_material_inputs(material_input_filename, proc_id, root_process)
+    physics_model_input_dict = load_physics_model_inputs(physics_model_input_filename, proc_id, root_process)
+    numerics_input_dict = load_numerics_inputs(numerics_input_filename, proc_id, root_process)
 
     return {
             'material': material_input_dict,
-            # 'physics_model': phys_mod_input_dict
+            'physics_model': physics_model_input_dict, 
+            'numerics': numerics_input_dict, 
+            'mod_names': {
+                'm': material_mod_input_name, 
+                'p': physics_model_mod_input_name, 
+                'n': numerics_mod_input_name
+                }
             }
 
 def import_file(full_name, path):

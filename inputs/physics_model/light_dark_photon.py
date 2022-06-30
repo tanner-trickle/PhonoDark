@@ -32,6 +32,7 @@ input_masses.sort()
 """
     TODO: automatically set power_V variable from list of c coefficients specified
 """
+
 physics_parameters = {
         # energy threshold
         'threshold' : 10**(-3),
@@ -44,6 +45,8 @@ physics_parameters = {
         # flag to compute for a specific model
         # SI computes using the algorithm presented in 1910.08092
         #'special_model': 'SI',
+        'm_med': 'light', 
+        'born_cor': True
 }
 
 dm_properties_dict = {

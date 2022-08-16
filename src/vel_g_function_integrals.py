@@ -28,13 +28,14 @@ def g0_func(q_vec, omega, m, vE_vec):
 
     v_minus = v_minus_func(q_vec, omega, m, vE_vec)
 
+    g0 = 0.
+
     if v_minus <= const.VESC:
 
-        return c1*( np.exp(-v_minus**2/const.V0**2) - np.exp(-const.VESC**2/const.V0**2) )
+        g0 = c1*( np.exp(-v_minus**2/const.V0**2) - np.exp(-const.VESC**2/const.V0**2) )
+        
+    return g0
 
-    else:
-
-        return 0
 
 def g0_func_opt(q_vec, omega, m, vE_vec, v_minus):
 
@@ -42,13 +43,13 @@ def g0_func_opt(q_vec, omega, m, vE_vec, v_minus):
 
     c1 = 2*const.PI**2*const.V0**2/(q_mag*const.N0)
 
+    g0 = 0.
+
     if v_minus <= const.VESC:
 
-        return c1*( np.exp(-v_minus**2/const.V0**2) - np.exp(-const.VESC**2/const.V0**2) )
-
-    else:
-
-        return 0
+        g0 = c1*( np.exp(-v_minus**2/const.V0**2) - np.exp(-const.VESC**2/const.V0**2) )
+        
+    return g0
 
 def skew_mat(vec):
     """
@@ -119,13 +120,13 @@ def g1_func(q_vec, omega, m, vE_vec):
 
     r_mat = rot_z_matrix(q_vec)
 
-    return (v_star*r_mat[:][2] - vE_vec)*g0_func(q_vec, omega, m, vE_vec)
+    return (v_star*r_mat[:, 2] - vE_vec)*g0_func(q_vec, omega, m, vE_vec)
 
 def g1_func_opt(q_vec, omega, m, vE_vec, g0_val, v_star):
 
     r_mat = rot_z_matrix(q_vec)
 
-    return (v_star*r_mat[:][2] - vE_vec)*g0_val
+    return (v_star*r_mat[:, 2] - vE_vec)*g0_val
 
 def B_func(v_minus):
 
@@ -199,7 +200,7 @@ def g2_func(q_vec, omega, m, vE_vec):
 
 def g2_func_opt(q_vec, omega, m, vE_vec, v_minus, g0_val, g1_vec):
 
-    r_mat =rot_z_matrix(q_vec)
+    r_mat = rot_z_matrix(q_vec)
 
     g2_mat = np.zeros((3, 3))
 

@@ -33,7 +33,7 @@ import src.phonopy_funcs as phonopy_funcs
 
 ###############################################################################
 
-version = "1.1.0"
+version = "1.2.0"
 comm = MPI.COMM_WORLD # initializing MPI
 n_proc = comm.Get_size() # total number of processors
 proc_id = comm.Get_rank() # processor if

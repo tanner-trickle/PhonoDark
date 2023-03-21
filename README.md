@@ -183,11 +183,15 @@ where the third and fourth indicies, both 0 above, are the time of day and mass 
 
 # Papers using `PhonoDark`
 
+- C. P. Romao, R. Catena, N. A. Spaldin, M. Matas, [Chiral phonons as dark matter detectors] 
+- N. Taufertsh\"ofer, M. Garcia-Sciveres, S. M. Griffin, [Broad-Range Directional Detection of Light Dark Matter in Cryogenic Ice]
 - A. Coskuner, T. Trickle, Z. Zhang, K. M. Zurek, [Directional detectability of dark matter with single phonon excitations: Target comparison]
 - T. Trickle, Z. Zhang, K. M. Zurek, [Effective Field Theory of Dark Matter Direct Detection With Collective Excitations]
 - T. Trickle, Z. Zhang, K. M. Zurek, K. Inzani and S. Griffin, [Multi-Channel Direct Detection of Light Dark Matter: Theoretical Framework]
 - S. M. Griffin, K. Inzani, T. Trickle, Z. Zhang and K. M. Zurek, [Multichannel direct detection of light dark matter: Target comparison]
 
+[Chiral phonons as dark matter detectors]: https://arxiv.org/abs/2301.07617
+[Broad-Range Directional Detection of Light Dark Matter in Cryogenic Ice]: https://arxiv.org/abs/2301.04778
 [Multi-Channel Direct Detection of Light Dark Matter: Theoretical Framework]: https://doi.org/10.1007/JHEP03(2020)036
 [Multichannel direct detection of light dark matter: Target comparison]: https://doi.org/10.1103/PhysRevD.101.055004
 [Effective Field Theory of Dark Matter Direct Detection With Collective Excitations]: https://arxiv.org/abs/2009.13534
@@ -202,12 +206,16 @@ If you use this program for your work please cite this paper:
 with the citation:
 
     @article{Trickle:2020oki,
-    author = "Trickle, Tanner and Zhang, Zhengkang and Zurek, Kathryn M.",
-    title = "{Effective Field Theory of Dark Matter Direct Detection With Collective Excitations}",
-    eprint = "2009.13534",
-    archivePrefix = "arXiv",
-    primaryClass = "hep-ph",
-    reportNumber = "CALT-TH-2020-037",
-    month = "9",
-    year = "2020"
+        author = "Trickle, Tanner and Zhang, Zhengkang and Zurek, Kathryn M.",
+        title = "{Effective field theory of dark matter direct detection with collective excitations}",
+        eprint = "2009.13534",
+        archivePrefix = "arXiv",
+        primaryClass = "hep-ph",
+        reportNumber = "CALT-TH-2020-037",
+        doi = "10.1103/PhysRevD.105.015001",
+        journal = "Phys. Rev. D",
+        volume = "105",
+        number = "1",
+        pages = "015001",
+        year = "2022"
     }
